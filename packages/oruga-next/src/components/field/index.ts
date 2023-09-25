@@ -11,3 +11,5 @@ export default {
 } as Plugin;
 
 export { Field as OField };
+
+export type FieldComponent = InstanceType<typeof Field>;

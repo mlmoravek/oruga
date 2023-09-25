@@ -36,28 +36,24 @@ title: Loading
 
 ### Props
 
-| Prop name    | Description                                                                      | Type                      | Values | Default                                                                                                                                              |
-| ------------ | -------------------------------------------------------------------------------- | ------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| active       | Whether loading is active or not, use v-model:active to make it two-way binding  | boolean                   | -      |                                                                                                                                                      |
-| animation    |                                                                                  | string                    | -      | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> loading: {<br>&nbsp;&nbsp;animation: 'fade'<br>}</code> |
-| canCancel    | Can close Loading by pressing escape or clicking outside                         | boolean                   | -      | false                                                                                                                                                |
-| container    |                                                                                  | object\|func\|HTMLElement | -      |                                                                                                                                                      |
-| fullPage     | Loader will overlay the full page                                                | boolean                   | -      | true                                                                                                                                                 |
-| icon         | Icon name                                                                        | string                    | -      | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> loading: {<br>&nbsp;&nbsp;icon: 'loading'<br>}</code>   |
-| iconSize     |                                                                                  | string                    | -      | 'medium'                                                                                                                                             |
-| iconSpin     | Enable spin effect on icon                                                       | boolean                   | -      | true                                                                                                                                                 |
-| onCancel     | Callback function to call after user canceled (pressed escape / clicked outside) | func                      | -      | Default function (see source code)                                                                                                                   |
-| override     |                                                                                  | boolean                   | -      |                                                                                                                                                      |
-| programmatic |                                                                                  | object                    | -      |                                                                                                                                                      |
-| promise      |                                                                                  | Promise                   | -      |                                                                                                                                                      |
+| Prop name | Description                                                                         | Type        | Values | Default                                                                                                                                                  |
+| --------- | ----------------------------------------------------------------------------------- | ----------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| active    | Whether loading is active or not,<br/>use v-model:active to make it two-way binding | boolean     | -      | <code style='white-space: nowrap; padding: 0;'>false</code>                                                                                              |
+| animation |                                                                                     | string      | -      | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>"loading: {<br>&nbsp;&nbsp;animation": undefined<br>}</code> |
+| canCancel | Can close Loading by pressing escape or clicking outside                            | boolean     | -      | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>"loading: {<br>&nbsp;&nbsp;canCancel": undefined<br>}</code> |
+| container | Container element to mount the component in                                         | HTMLElement | -      |                                                                                                                                                          |
+| fullPage  | Loader will overlay the full page                                                   | boolean     | -      | <code style='white-space: nowrap; padding: 0;'>true</code>                                                                                               |
+| icon      | Icon name                                                                           | string      | -      | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>"loading: {<br>&nbsp;&nbsp;icon": undefined<br>}</code>      |
+| iconSize  | Override the icon size                                                              | string      | -      | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>"loading: {<br>&nbsp;&nbsp;iconSize": undefined<br>}</code>  |
+| iconSpin  | Enable spin effect on icon                                                          | boolean     | -      | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>"loading: {<br>&nbsp;&nbsp;iconSpin": undefined<br>}</code>  |
 
 ### Events
 
-| Event name       | Properties | Description |
-| ---------------- | ---------- | ----------- |
-| update:active    |            |
-| close            |            |
-| update:full-page |            |
+| Event name      | Properties | Description                                                     |
+| --------------- | ---------- | --------------------------------------------------------------- |
+| update:active   |            | active prop two-way binding                                     |
+| update:fullPage |            | fullPage prop two-way binding                                   |
+| close           |            | Callback after user canceled (pressed escape / clicked outside) |
 
 ### Slots
 

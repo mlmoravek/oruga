@@ -21,7 +21,7 @@ const LoadingProgrammatic = {
     ): InstanceType<typeof Loading> {
         const defaultParams = {
             programmatic: { instances },
-            promise: Promise,
+            active: true,
         };
 
         const propsData = merge(defaultParams, params);
@@ -34,12 +34,13 @@ const LoadingProgrammatic = {
         const vnode = createVNode(Loading, propsData);
         vnode.appContext = app._context;
         render(vnode, document.createElement("div"));
-        return vnode.component.proxy as InstanceType<typeof Loading>;
+        return Object.assign(
+            vnode.component.proxy,
+            vnode.component.exposed,
+        ) as InstanceType<typeof Loading>;
     },
     closeAll(...args: any[]): void {
-        instances.walk((entry) => {
-            entry.close(...args);
-        });
+        instances.walk((entry) => entry.close(...args));
     },
 };
 

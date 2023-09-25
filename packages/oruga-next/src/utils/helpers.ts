@@ -1,4 +1,11 @@
 /**
+ * Generates a random string
+ */
+export function uuid(): string {
+    return Math.random().toString(36).substring(2, 15);
+}
+
+/**
  * +/- function to native math sign
  */
 function signPoly(value: number): number {

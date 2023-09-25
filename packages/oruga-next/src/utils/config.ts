@@ -1,5 +1,5 @@
 import { ref, type App } from "vue";
-import { merge } from "./helpers";
+import { getValueByPath, merge, setValueByPath } from "./helpers";
 import type { OrugaOptions } from "@/types";
 
 export let VueInstance: App;
@@ -23,9 +23,19 @@ export const getOptions = (): OrugaOptions => {
     return globalOptions.value;
 };
 
+export const getOption = <T>(path: string, defaultValue?: T): T => {
+    return getValueByPath(globalOptions.value, path, defaultValue);
+};
+
+export const setOption = <T>(path: string, defaultValue: T): void => {
+    setValueByPath(globalOptions.value, path, defaultValue);
+};
+
 export const ConfigProgrammatic = {
-    getConfig: getOptions,
-    setConfig(options: OrugaOptions): void {
+    getOption,
+    getOptions,
+    setOption,
+    setOptions(options: OrugaOptions): void {
         setOptions(merge(getOptions(), options, true));
     },
 };

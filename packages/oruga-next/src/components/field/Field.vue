@@ -1,291 +1,277 @@
-<script lang="ts">
-import { defineComponent } from "vue";
+<script setup lang="ts">
+import {
+    computed,
+    provide,
+    inject,
+    ref,
+    useSlots,
+    watch,
+    getCurrentInstance,
+} from "vue";
 
-import FieldBody from "./FieldBody.vue";
+import OFieldBody from "./FieldBody.vue";
 
-import BaseComponentMixin from "../../mixins/BaseComponentMixin";
-import MatchMediaMixin from "../../mixins/MatchMediaMixin";
+import { baseComponentProps } from "@/mixins/SharedProps";
+import { getOption } from "@/utils/config";
+import {
+    useComputedClass,
+    useClassProps,
+    usePropBinding,
+    useMatchMedia,
+} from "@/composables";
+
+import type { FieldComponent } from "./index";
 
 /**
  * Fields are used to add functionality to controls and to attach/group components and elements together
  * @displayName Field
  * @style _field.scss
  */
-export default defineComponent({
+defineOptions({
+    isOruga: true,
     name: "OField",
-    components: {
-        [FieldBody.name]: FieldBody,
-    },
     configField: "field",
-    mixins: [BaseComponentMixin, MatchMediaMixin],
-    provide() {
-        return {
-            $field: this,
-        };
-    },
-    inject: {
-        $field: { from: "$field", default: false },
-    },
-    props: {
-        /**
-         * 	Color of the field and help message, also adds a matching icon, optional. Used by Input, Select and Autocomplete
-         *  @values primary, info, success, warning, danger, and any other custom color
-         */
-        variant: String,
-        /**
-         * Field label
-         */
-        label: String,
-        /**
-         * Same as native for set on the label
-         */
-        labelFor: String,
-        /**
-         * Help message text
-         */
-        message: String,
-        /**
-         * Direct child components/elements of Field will be grouped horizontally (see which ones at the top of the page)
-         */
-        grouped: Boolean,
-        /**
-         * Allow controls to fill up multiple lines, making it responsive
-         */
-        groupMultiline: Boolean,
-        /**
-         * Group label and control on the same line for horizontal forms
-         */
-        horizontal: Boolean,
-        /**
-         * Field automatically attach controls together
-         */
-        addons: {
-            type: Boolean,
-            default: true,
-        },
-        /**
-         * Vertical size of input, optional
-         * @values small, medium, large
-         */
-        labelSize: String,
-        rootClass: [String, Function, Array],
-        horizontalClass: [String, Function, Array],
-        groupedClass: [String, Function, Array],
-        groupMultilineClass: [String, Function, Array],
-        labelClass: [String, Function, Array],
-        labelSizeClass: [String, Function, Array],
-        labelHorizontalClass: [String, Function, Array],
-        bodyClass: [String, Function, Array],
-        bodyHorizontalClass: [String, Function, Array],
-        addonsClass: [String, Function, Array],
-        messageClass: [String, Function, Array],
-        variantMessageClass: [String, Function, Array],
-        variantLabelClass: [String, Function, Array],
-        mobileClass: [String, Function, Array],
-        focusedClass: [String, Function, Array],
-        filledClass: [String, Function, Array],
-    },
-    data() {
-        return {
-            newVariant: this.variant,
-            newMessage: this.message,
-            isFocused: false,
-            isFilled: false,
-        };
-    },
-    computed: {
-        rootClasses() {
-            return [
-                this.computedClass("rootClass", "o-field"),
-                {
-                    [this.computedClass(
-                        "horizontalClass",
-                        "o-field--horizontal",
-                    )]: this.horizontal,
-                },
-                {
-                    [this.computedClass("mobileClass", "o-field--mobile")]:
-                        this.isMatchMedia,
-                },
-                {
-                    [this.computedClass("focusedClass", "o-field--focused")]:
-                        this.isFocused,
-                },
-                {
-                    [this.computedClass("filledClass", "o-field--filled")]:
-                        this.isFilled,
-                },
-            ];
-        },
-        messageClasses() {
-            return [
-                this.computedClass("messageClass", "o-field__message"),
-                {
-                    [this.computedClass(
-                        "variantMessageClass",
-                        "o-field__message-",
-                        this.newVariant,
-                    )]: this.newVariant,
-                },
-            ];
-        },
-        labelClasses() {
-            return [
-                this.computedClass("labelClass", "o-field__label"),
-                {
-                    [this.computedClass(
-                        "labelSizeClass",
-                        "o-field__label-",
-                        this.labelSize,
-                    )]: this.labelSize,
-                },
-                {
-                    [this.computedClass(
-                        "variantLabelClass",
-                        "o-field__label-",
-                        this.newVariant,
-                    )]: this.newVariant,
-                },
-            ];
-        },
-        labelHorizontalClasses() {
-            return [
-                this.computedClass(
-                    "labelHorizontalClass",
-                    "o-field__horizontal-label",
-                ),
-            ];
-        },
-        bodyClasses() {
-            return [this.computedClass("bodyClass", "o-field__body")];
-        },
-        bodyHorizontalClasses() {
-            return [
-                this.computedClass(
-                    "bodyHorizontalClass",
-                    "o-field__horizontal-body",
-                ),
-            ];
-        },
-        innerFieldClasses() {
-            return [
-                this.computedClass("rootClass", "o-field"),
-                {
-                    [this.computedClass(
-                        "groupMultilineClass",
-                        "o-field--grouped-multiline",
-                    )]: this.groupMultiline,
-                },
-                {
-                    [this.computedClass("groupedClass", "o-field--grouped")]:
-                        this.grouped,
-                },
-                {
-                    [this.computedClass("addonsClass", "o-field--addons")]:
-                        !this.grouped && this.hasAddons(),
-                },
-            ];
-        },
-        parent() {
-            return this.$field;
-        },
-        hasLabelSlot() {
-            return this.$slots.label;
-        },
-        hasMessageSlot() {
-            return this.$slots.message;
-        },
-        hasLabel() {
-            return this.label || this.hasLabelSlot;
-        },
-        hasMessage() {
-            return (
-                ((!this.parent || !this.parent.hasInnerField) &&
-                    this.newMessage) ||
-                this.hasMessageSlot
-            );
-        },
-        hasInnerField() {
-            return this.grouped || this.groupMultiline || this.hasAddons();
-        },
-    },
-    watch: {
-        /**
-         * Set internal variant when prop change.
-         */
-        variant(value) {
-            this.newVariant = value;
-        },
-
-        /**
-         * Set internal message when prop change.
-         */
-        message(value) {
-            this.newMessage = value;
-        },
-
-        /**
-         * Set parent message if we use Field in Field.
-         */
-        newMessage(value) {
-            if (this.parent && this.parent.hasInnerField) {
-                if (!this.parent.variant) {
-                    this.parent.newVariant = this.newVariant;
-                }
-                if (!this.parent.message) {
-                    this.parent.newMessage = value;
-                }
-            }
-        },
-    },
-    methods: {
-        hasAddons() {
-            let renderedNode = 0;
-            const slot = this.$slots.default();
-            if (slot) {
-                const children =
-                    slot.length === 1 && Array.isArray(slot[0].children)
-                        ? slot[0].children
-                        : slot;
-                renderedNode = children.reduce(
-                    (i, node) => (node ? i + 1 : i),
-                    0,
-                );
-            }
-            return renderedNode > 1 && this.addons && !this.horizontal;
-        },
-    },
 });
+
+const props = defineProps({
+    // add global shared props (will not be displayed in the docs)
+    ...baseComponentProps,
+    /** Mobile breakpoint as max-width value */
+    mobileBreakpoint: {
+        type: String,
+        default: () => getOption("field.mobileBreakpoint"),
+    },
+    /**
+     * Color of the field and help message, also adds a matching icon, optional.
+     * Used by Input, Select and Autocomplete.
+     * @values primary, info, success, warning, danger, and any other custom color
+     */
+    variant: { type: String, default: undefined },
+    /** Field label */
+    label: { type: String, default: undefined },
+    /**
+     * Vertical size of input, optional
+     * @values small, medium, large
+     */
+    labelSize: {
+        type: String,
+        default: () => getOption("field.labelsize"),
+    },
+    /** Same as native for set on the label */
+    labelFor: { type: String, default: undefined },
+    /** Help message text */
+    message: { type: String, default: undefined },
+    /**
+     * Direct child components/elements of Field will be grouped horizontally
+     * (see which ones at the top of the page).
+     */
+    grouped: { type: Boolean, default: false },
+    /** Allow controls to fill up multiple lines, making it responsive */
+    groupMultiline: { type: Boolean, default: false },
+    /** Group label and control on the same line for horizontal forms */
+    horizontal: { type: Boolean, default: false },
+    /** Field automatically attach controls together */
+    addons: { type: Boolean, default: true },
+    // add class props (will not be displayed in the docs)
+    ...useClassProps([
+        "rootClass",
+        "horizontalClass",
+        "groupedClass",
+        "groupMultilineClass",
+        "labelClass",
+        "labelSizeClass",
+        "labelHorizontalClass",
+        "bodyClass",
+        "bodyHorizontalClass",
+        "addonsClass",
+        "messageClass",
+        "variantMessageClass",
+        "variantLabelClass",
+        "mobileClass",
+        "focusedClass",
+        "filledClass",
+    ]),
+});
+
+const emits = defineEmits<{
+    /** variant prop two-way binding */
+    (e: "update:variant", value: boolean): void;
+    /** message prop two-way binding */
+    (e: "update:message", value: boolean): void;
+}>();
+
+const { isMobile } = useMatchMedia();
+
+/** Set internal variant when prop change. */
+const fieldVariant = usePropBinding<string>("variant", props, emits);
+
+/** Set internal message when prop change. */
+const fieldMessage = usePropBinding<string>("message", props, emits);
+
+/** this can be set from outside to update the focus state. */
+const isFocused = ref(false);
+/** this can be set from outside to update the filled state. */
+const isFilled = ref(false);
+
+// inject parent field component if used inside one
+const parentField = inject<FieldComponent>("$field", undefined);
+
+// provide field component via dependency injection
+const vm = getCurrentInstance();
+provide("$field", Object.assign(vm.proxy, vm.exposed));
+
+/** Set parent message if we use Field in Field. */
+watch(
+    () => fieldMessage.value,
+    (value) => {
+        if (parentField?.hasInnerField) {
+            if (!parentField.fieldVariant)
+                parentField.fieldVariant = fieldVariant.value;
+            if (!parentField.fieldMessage) parentField.fieldMessage = value;
+        }
+    },
+);
+
+const slots = useSlots();
+
+const hasLabel = computed(() => props.label || !!slots.label);
+
+const hasMessage = computed(
+    () =>
+        (!parentField?.hasInnerField && fieldMessage.value) || !!slots.message,
+);
+
+const hasInnerField = computed(
+    () => props.grouped || props.groupMultiline || hasAddons(),
+);
+
+function hasAddons(): boolean {
+    let renderedNode = 0;
+    const slot = slots.default();
+    if (slot) {
+        const children =
+            slot.length === 1 && Array.isArray(slot[0].children)
+                ? slot[0].children
+                : slot;
+        renderedNode = children.filter((n) => !!n).length;
+    }
+    return renderedNode > 1 && props.addons && !props.horizontal;
+}
+
+// make some functionality externally accessible
+defineExpose({
+    hasInnerField,
+    isFocused,
+    isFilled,
+    fieldVariant,
+    fieldMessage,
+});
+
+// --- Computed Component Classes ---
+
+const rootClasses = computed(() => [
+    useComputedClass("rootClass", "o-field"),
+    {
+        [useComputedClass("horizontalClass", "o-field--horizontal")]:
+            props.horizontal,
+    },
+    {
+        [useComputedClass("mobileClass", "o-field--mobile")]: isMobile.value,
+    },
+    {
+        [useComputedClass("focusedClass", "o-field--focused")]: isFocused.value,
+    },
+    {
+        [useComputedClass("filledClass", "o-field--filled")]: isFilled.value,
+    },
+]);
+
+const messageClasses = computed(() => [
+    useComputedClass("messageClass", "o-field__message"),
+    {
+        [useComputedClass(
+            "variantMessageClass",
+            "o-field__message-",
+            fieldVariant.value,
+        )]: fieldVariant.value,
+    },
+]);
+
+const labelClasses = computed(() => [
+    useComputedClass("labelClass", "o-field__label"),
+    {
+        [useComputedClass(
+            "labelSizeClass",
+            "o-field__label-",
+            props.labelSize,
+        )]: props.labelSize,
+    },
+    {
+        [useComputedClass(
+            "variantLabelClass",
+            "o-field__label-",
+            fieldVariant.value,
+        )]: fieldVariant.value,
+    },
+]);
+
+const labelHorizontalClasses = computed(() => [
+    useComputedClass("labelHorizontalClass", "o-field__horizontal-label"),
+]);
+
+const bodyClasses = computed(() => [
+    useComputedClass("bodyClass", "o-field__body"),
+]);
+
+const bodyHorizontalClasses = computed(() => [
+    useComputedClass("bodyHorizontalClass", "o-field__horizontal-body"),
+]);
+
+const innerFieldClasses = computed(() => [
+    useComputedClass("rootClass", "o-field"),
+    {
+        [useComputedClass("groupMultilineClass", "o-field--grouped-multiline")]:
+            props.groupMultiline,
+    },
+    {
+        [useComputedClass("groupedClass", "o-field--grouped")]: props.grouped,
+    },
+    {
+        [useComputedClass("addonsClass", "o-field--addons")]:
+            !props.grouped && hasAddons(),
+    },
+]);
 </script>
 
 <template>
     <div :class="rootClasses">
         <div v-if="horizontal" :class="labelHorizontalClasses">
             <label v-if="hasLabel" :for="labelFor" :class="labelClasses">
-                <slot v-if="hasLabelSlot" name="label" />
-                <template v-else>{{ label }}</template>
+                <slot name="label">{{ label }}</slot>
             </label>
         </div>
         <template v-else>
             <label v-if="hasLabel" :for="labelFor" :class="labelClasses">
-                <slot v-if="hasLabelSlot" name="label" />
-                <template v-else>{{ label }}</template>
+                <slot name="label">{{ label }}</slot>
             </label>
         </template>
-        <o-field-body v-if="horizontal">
+
+        <o-field-body v-if="horizontal" :classes="bodyHorizontalClasses">
             <slot />
         </o-field-body>
+
         <div v-else-if="hasInnerField" :class="bodyClasses">
             <div :class="innerFieldClasses">
                 <slot />
             </div>
         </div>
+
         <template v-else>
             <slot />
         </template>
+
         <p v-if="hasMessage && !horizontal" :class="messageClasses">
-            <slot v-if="hasMessageSlot" name="message" />
-            <template v-else>{{ newMessage }}</template>
+            <slot name="message"> {{ fieldMessage }} </slot>
         </p>
     </div>
 </template>
