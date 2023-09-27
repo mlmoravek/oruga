@@ -54,7 +54,7 @@ export default defineConfig(({ mode }) => ({
                       name: "Oruga",
                       entry: resolve(__dirname, "src/index.ts"),
                       formats: ["umd", "es"],
-                      fileName: (format): string =>
+                      fileName: (format) =>
                           format === "umd" ? "oruga.js" : "oruga.mjs",
                   }
                 : // build rollup output verions for all entries
