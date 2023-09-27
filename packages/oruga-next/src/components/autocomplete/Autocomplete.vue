@@ -337,7 +337,7 @@ if (isClient) {
 /**
  * Close dropdown if clicked outside.
  */
-function clickedOutside(event): void {
+function clickedOutside(event: PointerEvent): void {
     if (!hasFocus.value && whiteList.value.indexOf(event.target) < 0) {
         if (
             props.keepFirst &&
@@ -351,7 +351,7 @@ function clickedOutside(event): void {
     }
 }
 
-function setItemRef(el): void {
+function setItemRef(el: HTMLElement): void {
     if (el) itemRefs.value.push(el);
 }
 
@@ -525,38 +525,10 @@ function checkIfHeaderOrFooterSelected(
 }
 
 /**
- * Key listener.
- * Select the hovered option.
- */
-function keydown(event): void {
-    const { key } = event; // cannot destructure preventDefault (https://stackoverflow.com/a/49616808/2774496)
-    // prevent emit submit event
-    if (key === "Enter") event.preventDefault();
-    // Close dropdown on Tab & no hovered
-    if (key === "Escape" || key === "Tab") {
-        isActive.value = false;
-    }
-    if (props.confirmKeys.indexOf(key) >= 0) {
-        // If adding by comma, don't add the comma to the input
-        if (key === ",") event.preventDefault();
-        // Close dropdown on select by Tab
-        const closeDropdown = !props.keepOpen || key === "Tab";
-        if (hoveredOption.value === null) {
-            // header and footer uses headerHovered && footerHovered. If header or footer
-            // was selected then fire event otherwise just return so a value isn't selected
-            checkIfHeaderOrFooterSelected(event, null, closeDropdown);
-            return;
-        }
-        setSelected(hoveredOption.value, closeDropdown, event);
-    }
-}
-
-/**
  * Arrows keys listener.
  * If dropdown is active, set hovered option, or else just open.
  */
-function keyArrows(direction): void {
-    const sum = direction === "down" ? 1 : -1;
+function navigateItem(direction: 1 | -1): void {
     if (!isActive.value) {
         isActive.value = true;
         return;
@@ -566,59 +538,85 @@ function keyArrows(direction): void {
         .map((d) => d.items)
         .reduce((a, b) => [...a, ...b], []);
 
-    if (headerRef.value && props.selectableHeader) {
-        data.unshift(undefined);
-    }
-    if (footerRef.value && props.selectableFooter) {
-        data.push(undefined);
-    }
-    let index;
-    if (headerHovered.value) {
-        index = 0 + sum;
-    } else if (footerHovered.value) {
-        index = data.length - 1 + sum;
-    } else {
-        index = data.indexOf(hoveredOption.value) + sum;
-    }
+    // add header / footer if selectable
+    if (headerRef.value && props.selectableHeader) data.unshift(undefined);
+    if (footerRef.value && props.selectableFooter) data.push(undefined);
 
+    // define current index
+    let index;
+    if (headerHovered.value) index = 0 + direction;
+    else if (footerHovered.value) index = data.length - 1 + direction;
+    else index = data.indexOf(hoveredOption.value) + direction;
+
+    // check if index overflow
     index = index > data.length - 1 ? data.length - 1 : index;
+    // check if index underflow
     index = index < 0 ? 0 : index;
 
+    // set hover state
     footerHovered.value = false;
     headerHovered.value = false;
-    setHovered(data[index] !== undefined ? data[index] : null);
-    if (
-        footerRef.value &&
-        props.selectableFooter &&
-        index === data.length - 1
-    ) {
+    if (footerRef.value && props.selectableFooter && index === data.length - 1)
         footerHovered.value = true;
-    }
-    if (headerRef.value && props.selectableHeader && index === 0) {
+    else if (headerRef.value && props.selectableHeader && index === 0)
         headerHovered.value = true;
-    }
+    else setHovered(data[index] !== undefined ? data[index] : null);
 
-    const list = dropdownRef.value;
+    // get items from input
     let items = itemRefs.value || [];
-
-    if (headerRef.value && props.selectableHeader) {
+    if (headerRef.value && props.selectableHeader)
         items = [headerRef.value, ...items];
-    }
-    if (footerRef.value && props.selectableFooter) {
+    if (footerRef.value && props.selectableFooter)
         items = [...items, footerRef.value];
-    }
-    const element = items[index];
 
+    const element = items[index];
     if (!element) return;
 
-    const visMin = list.scrollTop;
-    const visMax = list.scrollTop + list.clientHeight - element.clientHeight;
+    // define scroll position
+    const dropdownMenu = dropdownRef.value;
+    const visMin = dropdownMenu.scrollTop;
+    const visMax =
+        dropdownMenu.scrollTop +
+        dropdownMenu.clientHeight -
+        element.clientHeight;
 
     if (element.offsetTop < visMin) {
-        list.scrollTop = element.offsetTop;
+        // is scolled top
+        dropdownMenu.scrollTop = element.offsetTop;
     } else if (element.offsetTop >= visMax) {
-        list.scrollTop =
-            element.offsetTop - list.clientHeight + element.clientHeight;
+        // is scolled bottom
+        dropdownMenu.scrollTop =
+            element.offsetTop -
+            dropdownMenu.clientHeight +
+            element.clientHeight;
+        // trigger infinte-scroll
+        emits("infinite-scroll");
+    }
+}
+
+/**
+ * Key listener.
+ * Select the hovered option.
+ */
+function onKeydown(event: KeyboardEvent): void {
+    // prevent emit submit event
+    if (event.key === "Enter") event.preventDefault();
+    // Close dropdown on Tab & no hovered
+    if (event.key === "Escape" || event.key === "Tab") {
+        isActive.value = false;
+    }
+    if (props.confirmKeys.indexOf(event.key) >= 0) {
+        // If adding by comma, don't add the comma to the input
+        if (event.key === ",") event.preventDefault();
+        // Close dropdown on select by Tab
+        const closeDropdown = !props.keepOpen || event.key === "Tab";
+        if (hoveredOption.value === null) {
+            // header and footer uses headerHovered && footerHovered. If header or footer
+            // was selected then fire event otherwise just return so a value isn't selected
+            checkIfHeaderOrFooterSelected(event, null, closeDropdown);
+            return;
+        }
+        setSelected(hoveredOption.value, closeDropdown, event);
     }
 }
 
@@ -670,9 +668,7 @@ function emitInput(): void {
 }
 
 function checkValidity(): void {
-    if (props.useHtml5Validation) {
-        nextTick(() => checkHtml5Validity());
-    }
+    if (props.useHtml5Validation) nextTick(() => checkHtml5Validity());
 }
 
 // --- Icon Feature ---
@@ -694,9 +690,7 @@ function rightIconClick(event: Event): void {
         if (props.openOnFocus) {
             inputRef.value.$el.focus();
         }
-    } else {
-        emits("icon-right-click", event);
-    }
+    } else emits("icon-right-click", event);
 }
 
 // --- Resize Feature ---
@@ -776,9 +770,8 @@ function checkIfReachedTheEndOfScroll(): void {
     if (
         list.clientHeight !== list.scrollHeight &&
         list.scrollTop + list.clientHeight + footerHeight >= list.scrollHeight
-    ) {
+    )
         emits("infinite-scroll");
-    }
 }
 
 // --- AppendToBody Feature ---
@@ -920,9 +913,9 @@ function itemOptionClasses(option) {
             @focus="onFocus"
             @blur="onBlur"
             @invalid="onInvalid"
-            @keydown="keydown"
-            @keydown.up.prevent="keyArrows('up')"
-            @keydown.down.prevent="keyArrows('down')"
+            @keydown="onKeydown"
+            @keydown.up.prevent="navigateItem(-1)"
+            @keydown.down.prevent="navigateItem(1)"
             @icon-right-click="rightIconClick"
             @icon-click="(event) => $emit('icon-click', event)" />
 

@@ -29,7 +29,7 @@ const props = defineProps({
     // add global shared props (will not be displayed in the docs)
     ...baseComponentProps,
     /** @model */
-    modelValue: { type: Object as PropType<T>, required: true },
+    modelValue: { type: Object as PropType<T>, default: undefined },
     /**
      * Color of the control, optional
      * @values primary, info, success, warning, danger, and any other custom color
