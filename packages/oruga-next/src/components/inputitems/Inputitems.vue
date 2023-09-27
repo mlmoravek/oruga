@@ -11,6 +11,7 @@ import { defineComponent } from "vue";
 
 /**
  * A simple item input field that can have autocomplete functionality
+ * @deprecated use TagInput instead
  * @displayName Inputitems
  * @style _inputitems.scss
  */

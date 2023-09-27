@@ -36,40 +36,37 @@ title: Select
 
 ### Props
 
-| Prop name    | Description                                                 | Type    | Values                                            | Default                                                                                                         |
-| ------------ | ----------------------------------------------------------- | ------- | ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| autocomplete | Native options to use in HTML5 validation                   | string  | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                          |
-| expanded     | Makes input full width when inside a grouped or addon field | boolean | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                          |
-| icon         | Icon name to be added                                       | string  | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                          |
-| iconPack     | Icon pack to use                                            | string  | `mdi`, `fa`, `fas and any other custom icon pack` | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp;): |
-
-        undefined,
-    <br>}</code> |
-
-| iconRight | Icon name to be added on the right side | string | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp;):
-undefined,
-<br>}</code> |
-| maxlength | Same as native maxlength, plus character counter | number\|string | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| multiple | | boolean | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| nativeSize | Same as native size | string\|number | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| override | | boolean | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| placeholder | Text when nothing is selected | string | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| rounded | Makes the element rounded | boolean | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| size | Vertical size of input, optional | string | `small`, `medium`, `large` | <code style='white-space: nowrap; padding: 0;'></code> |
-| statusIcon | Show status icon using field and variant prop | boolean | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp;): true<br>}</code> |
-| useHtml5Validation | Enable html 5 native validation | boolean | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp;): true<br>}</code> |
-| v-model | | string\|number\|boolean\|object\|array | - | <code style='white-space: nowrap; padding: 0;'>null</code> |
-| validationMessage | The message which is shown when a validation error occurs | string | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| variant | Color of the control, optional | string | `primary`, `info`, `success`, `warning`, `danger`, `and any other custom color` | <code style='white-space: nowrap; padding: 0;'></code> |
+| Prop name          | Description                                                 | Type                                   | Values                                                                          | Default                                                                                                                                                      |
+| ------------------ | ----------------------------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| autocomplete       | Native options to use in HTML5 validation                   | string                                 | -                                                                               | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>"select: {<br>&nbsp;&nbsp;autocompletete": undefined<br>}</code> |
+| expanded           | Makes input full width when inside a grouped or addon field | boolean                                | -                                                                               | <code style='white-space: nowrap; padding: 0;'>false</code>                                                                                                  |
+| icon               | Icon name to be shown                                       | string                                 | -                                                                               | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>"select: {<br>&nbsp;&nbsp;icon": undefined<br>}</code>           |
+| iconClickable      | Makes the icon clickable                                    | boolean                                | -                                                                               | <code style='white-space: nowrap; padding: 0;'>false</code>                                                                                                  |
+| iconPack           | Icon pack to use                                            | string                                 | `mdi`, `fa`, `fas and any other custom icon pack`                               | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>"select: {<br>&nbsp;&nbsp;iconPack": undefined<br>}</code>       |
+| iconRight          | Icon name to be added on the right side                     | string                                 | -                                                                               | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>"select: {<br>&nbsp;&nbsp;iconRight": undefined<br>}</code>      |
+| iconRightClickable | Make the icon right clickable                               | boolean                                | -                                                                               | <code style='white-space: nowrap; padding: 0;'>false</code>                                                                                                  |
+| iconRightVariant   | Variant of right icon                                       | string                                 | -                                                                               |                                                                                                                                                              |
+| multiple           | Allow multiple selection                                    | boolean                                | -                                                                               | <code style='white-space: nowrap; padding: 0;'>false</code>                                                                                                  |
+| nativeSize         | Same as native size                                         | string\|number                         | -                                                                               |                                                                                                                                                              |
+| placeholder        | Text when nothing is selected                               | string                                 | -                                                                               |                                                                                                                                                              |
+| rounded            | Makes the element rounded                                   | boolean                                | -                                                                               | <code style='white-space: nowrap; padding: 0;'>false</code>                                                                                                  |
+| size               | Vertical size of input, optional                            | string                                 | `small`, `medium`, `large`                                                      | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>"select: {<br>&nbsp;&nbsp;size": undefined<br>}</code>           |
+| statusIcon         | Show status icon using field and variant prop               | boolean                                | -                                                                               | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp;"statusIcon": undefined<br>}</code>             |
+| useHtml5Validation | Enable html 5 native validation                             | boolean                                | -                                                                               | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp;"useHtml5Validation": undefined<br>}</code>     |
+| v-model            |                                                             | string\|number\|boolean\|object\|array | -                                                                               | <code style='white-space: nowrap; padding: 0;'>null</code>                                                                                                   |
+| validationMessage  | The message which is shown when a validation error occurs   | string                                 | -                                                                               |                                                                                                                                                              |
+| variant            | Color of the control, optional                              | string                                 | `primary`, `info`, `success`, `warning`, `danger`, `and any other custom color` | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>"select: {<br>&nbsp;&nbsp;variant": undefined<br>}</code>        |
 
 ### Events
 
-| Event name        | Properties | Description |
-| ----------------- | ---------- | ----------- |
-| blur              |            |
-| focus             |            |
-| invalid           |            |
-| update:modelValue |            |
+| Event name        | Properties | Description                     |
+| ----------------- | ---------- | ------------------------------- |
+| update:modelValue |            | modelValue prop two-way binding |
+| focus             |            | on input focus event            |
+| blur              |            | on input blur event             |
+| invalid           |            | on input invalid event          |
+| icon-click        |            | on icon click event             |
+| icon-right-click  |            | on icon right click event       |
 
 ### Slots
 

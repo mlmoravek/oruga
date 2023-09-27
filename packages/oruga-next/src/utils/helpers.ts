@@ -218,6 +218,9 @@ export function toCssDimension(width: string | number): string | number {
         : width + "px";
 }
 
+/**
+ * @deprecated use useDebounce composable instead
+ */
 export function debounce<A extends Array<unknown>>(
     func: (...args: A[]) => void,
     wait: number,

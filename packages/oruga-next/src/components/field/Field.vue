@@ -1,13 +1,5 @@
 <script setup lang="ts">
-import {
-    computed,
-    provide,
-    inject,
-    ref,
-    useSlots,
-    watch,
-    getCurrentInstance,
-} from "vue";
+import { computed, ref, useSlots, watch } from "vue";
 
 import OFieldBody from "./FieldBody.vue";
 
@@ -20,7 +12,7 @@ import {
     useMatchMedia,
 } from "@/composables";
 
-import type { FieldComponent } from "./index";
+import { injectField, provideField } from "../field/useProvideField";
 
 /**
  * Fields are used to add functionality to controls and to attach/group components and elements together
@@ -114,20 +106,17 @@ const isFocused = ref(false);
 const isFilled = ref(false);
 
 // inject parent field component if used inside one
-const parentField = inject<FieldComponent>("$field", undefined);
-
-// provide field component via dependency injection
-const vm = getCurrentInstance();
-provide("$field", Object.assign(vm.proxy, vm.exposed));
+const { parentField } = injectField();
 
 /** Set parent message if we use Field in Field. */
 watch(
     () => fieldMessage.value,
     (value) => {
-        if (parentField?.hasInnerField) {
-            if (!parentField.fieldVariant)
-                parentField.fieldVariant = fieldVariant.value;
-            if (!parentField.fieldMessage) parentField.fieldMessage = value;
+        if (parentField?.value?.hasInnerField) {
+            if (!parentField.value.fieldVariant)
+                parentField.value.setVariant(fieldVariant.value);
+            if (!parentField.value.fieldMessage)
+                parentField.value.setMessage(value);
         }
     },
 );
@@ -138,7 +127,8 @@ const hasLabel = computed(() => props.label || !!slots.label);
 
 const hasMessage = computed(
     () =>
-        (!parentField?.hasInnerField && fieldMessage.value) || !!slots.message,
+        (!parentField?.value?.hasInnerField && fieldMessage.value) ||
+        !!slots.message,
 );
 
 const hasInnerField = computed(
@@ -147,6 +137,7 @@ const hasInnerField = computed(
 
 function hasAddons(): boolean {
     let renderedNode = 0;
+    // [Vue warn]: Slot "default" invoked outside of the render function: this will not track dependencies used in the slot. Invoke the slot function inside the render function instead.
     const slot = slots.default();
     if (slot) {
         const children =
@@ -158,13 +149,28 @@ function hasAddons(): boolean {
     return renderedNode > 1 && props.addons && !props.horizontal;
 }
 
-// make some functionality externally accessible
-defineExpose({
-    hasInnerField,
-    isFocused,
-    isFilled,
-    fieldVariant,
-    fieldMessage,
+const rootRef = ref();
+
+// Provide field component data via dependency injection.
+// Provided data is a computed ref to enjure reactivity.
+provideField({
+    $el: rootRef.value,
+    props,
+    hasInnerField: hasInnerField.value,
+    fieldVariant: fieldVariant.value,
+    fieldMessage: fieldMessage.value,
+    setFocus: (value: boolean): void => {
+        isFocused.value = value;
+    },
+    setFilled: (value: boolean): void => {
+        isFilled.value = value;
+    },
+    setVariant: (value: string): void => {
+        fieldVariant.value = value;
+    },
+    setMessage: (value: string): void => {
+        fieldMessage.value = value;
+    },
 });
 
 // --- Computed Component Classes ---
@@ -244,7 +250,7 @@ const innerFieldClasses = computed(() => [
 </script>
 
 <template>
-    <div :class="rootClasses">
+    <div ref="rootRef" :class="rootClasses">
         <div v-if="horizontal" :class="labelHorizontalClasses">
             <label v-if="hasLabel" :for="labelFor" :class="labelClasses">
                 <slot name="label">{{ label }}</slot>
@@ -275,3 +281,4 @@ const innerFieldClasses = computed(() => [
         </p>
     </div>
 </template>
+./useProvideField

@@ -3,7 +3,6 @@ import {
     ref,
     computed,
     nextTick,
-    inject,
     watch,
     onMounted,
     type StyleValue,
@@ -19,7 +18,8 @@ import {
     useVModelBinding,
 } from "@/composables";
 
-import type { FieldComponent } from "../field";
+import { injectField } from "../field/useProvideField";
+import { useFormInput } from "@/composables/useFormInput";
 
 /**
  * Get user Input. Use with Field to access all functionalities
@@ -69,15 +69,10 @@ const props = defineProps({
     expanded: { type: Boolean, default: false },
     /** Makes the element rounded */
     rounded: { type: Boolean, default: false },
-    /** Native options to use in HTML5 validation */
-    autocomplete: {
-        type: String,
-        default: () => getOption("input.autocompletete", "off"),
-    },
     /** Adds the reveal password functionality */
     passwordReveal: { type: Boolean, default: false },
     /** Same as native maxlength, plus character counter */
-    maxlength: { type: [Number, String], default: undefined },
+    maxlength: { type: Number, default: undefined },
     /** Show character counter when maxlength prop is passed */
     hasCounter: {
         type: Boolean,
@@ -89,13 +84,22 @@ const props = defineProps({
      * Icon pack to use
      * @values mdi, fa, fas and any other custom icon pack
      */
-    iconPack: { type: String, default: undefined },
+    iconPack: {
+        type: String,
+        default: () => getOption("input.iconPack", undefined),
+    },
     /** Icon name to be shown */
-    icon: { type: String, default: undefined },
+    icon: {
+        type: String,
+        default: () => getOption("input.icon", undefined),
+    },
     /** Makes the icon clickable */
     iconClickable: { type: Boolean, default: false },
     /** Icon name to be added on the right side */
-    iconRight: { type: String, default: undefined },
+    iconRight: {
+        type: String,
+        default: () => getOption("input.iconRight", undefined),
+    },
     /** Make the icon right clickable */
     iconRightClickable: { type: Boolean, default: false },
     /** Variant of right icon */
@@ -112,6 +116,16 @@ const props = defineProps({
         type: String,
         default: () => getOption("input.clearIcon", "close-circle"),
     },
+    /** Show status icon using field and variant prop */
+    statusIcon: {
+        type: Boolean,
+        default: () => getOption("statusIcon", true),
+    },
+    /** Native options to use in HTML5 validation */
+    autocomplete: {
+        type: String,
+        default: () => getOption("input.autocomplete", "off"),
+    },
     /** Enable html 5 native validation */
     useHtml5Validation: {
         type: Boolean,
@@ -119,11 +133,6 @@ const props = defineProps({
     },
     /** The message which is shown when a validation error occurs */
     validationMessage: { type: String, default: undefined },
-    /** Show status icon using field and variant prop */
-    statusIcon: {
-        type: Boolean,
-        default: () => getOption("statusIcon", true),
-    },
     // add class props (will not be displayed in the docs)
     ...useClassProps([
         "rootClass",
@@ -143,25 +152,35 @@ const props = defineProps({
 const emits = defineEmits<{
     /** modelValue prop two-way binding */
     (e: "update:modelValue", value: string | number): void;
-    /** on input change event */
-    (e: "input", value: string | number): void;
     /** on input focus event */
-    (e: "focus", value: Event): void;
+    (e: "focus", evt: Event): void;
     /** on input blur event */
-    (e: "blur", value: Event): void;
+    (e: "blur", evt: Event): void;
     /** on input invalid event */
-    (e: "invalid", value: Event): void;
+    (e: "invalid", evt: Event): void;
     /** on icon click event */
-    (e: "icon-click"): void;
+    (e: "icon-click", evt: Event): void;
     /** on icon right click event */
-    (e: "icon-right-click"): void;
+    (e: "icon-right-click", evt: Event): void;
 }>();
 
-// const newValue = ref(this.modelValue);
-const vmodel = useVModelBinding<string | number>(props, emits);
+// --- Validation Feature ---
+
+const inputRef = ref<HTMLInputElement>();
+const textareaRef = ref<HTMLInputElement>();
+
+const elementRef = computed<HTMLInputElement>(() =>
+    props.type === "textarea" ? textareaRef.value : inputRef.value,
+);
+
+// use form input functionality
+const { checkHtml5Validity, onBlur, onFocus, onInvalid, setFocus, isFocused } =
+    useFormInput(elementRef, emits);
 
 // inject parent field component if used inside one
-const parentField = inject<FieldComponent>("$field", undefined);
+const { parentField, statusVariant, statusVariantIcon } = injectField();
+
+const vmodel = useVModelBinding<string | number>(props, emits);
 
 /**
  * Get value length
@@ -185,7 +204,7 @@ onMounted(() => {
     watch(
         () => vmodel.value,
         (value) => {
-            if (parentField) parentField.isFilled = !!value;
+            if (parentField?.value) parentField.value.setFilled(!!value);
             if (props.autosize) resize();
             checkHtml5Validity();
         },
@@ -221,39 +240,6 @@ const computedStyles = computed(
 
 // --- Icon Feature ---
 
-/**
- * Get the type prop from parent if it's a Field.
- */
-const statusVariant = computed(() => {
-    if (!parentField) return undefined;
-    else if (!parentField.fieldVariant) return undefined;
-    else {
-        if (typeof parentField.fieldVariant === "string") {
-            return parentField.fieldVariant;
-        } else if (Array.isArray(parentField.fieldVariant)) {
-            for (const key in parentField.fieldVariant as any) {
-                if (parentField.fieldVariant[key]) {
-                    return key;
-                }
-            }
-        }
-    }
-    return undefined;
-});
-
-/**
- * Icon name based on the variant.
- */
-const statusVariantIcon = computed(() => {
-    const statusVariantIcon = getOption("statusVariantIcon", {
-        success: "check",
-        danger: "alert-circle",
-        info: "information",
-        warning: "alert",
-    });
-    return statusVariantIcon[statusVariant.value] || "";
-});
-
 const hasIconRight = computed(
     () =>
         props.passwordReveal ||
@@ -262,7 +248,7 @@ const hasIconRight = computed(
         props.iconRight,
 );
 
-const rightIcon = computed(() => {
+const computedIconRight = computed(() => {
     if (props.passwordReveal) {
         return passwordVisibleIcon.value;
     } else if (props.clearable && vmodel.value && props.clearIcon) {
@@ -273,19 +259,18 @@ const rightIcon = computed(() => {
     return statusVariantIcon.value;
 });
 
-const rightIconVariant = computed(() => {
-    if (props.passwordReveal || props.iconRight) {
-        return props.iconRightVariant || props.variant || null;
-    }
-    return statusVariant.value;
-});
+const computedIconRightVariant = computed(() =>
+    props.passwordReveal || props.iconRight
+        ? props.iconRightVariant || props.variant || null
+        : statusVariant.value,
+);
 
 function iconClick(emit, event): void {
     emits(emit, event);
-    nextTick(() => focus());
+    nextTick(() => setFocus());
 }
 
-function rightIconClick(event): void {
+function rightIconClick(event: Event): void {
     if (props.passwordReveal) {
         togglePasswordVisibility();
     } else if (props.clearable) {
@@ -315,150 +300,7 @@ const passwordVisibleIcon = computed(() =>
 function togglePasswordVisibility(): void {
     isPasswordVisible.value = !isPasswordVisible.value;
     inputType.value = isPasswordVisible.value ? "text" : "password";
-    nextTick(() => focus());
-}
-
-// --- Input Focus Feature ---
-
-const isFocused = ref(false);
-
-/**
- * Focus method that work dynamically depending on the component.
- */
-function focus(): void {
-    nextTick(() => {
-        if (elementRef.value) elementRef.value.focus();
-    });
-}
-
-function onBlur(event: Event): void {
-    isFocused.value = false;
-    if (parentField) parentField.isFocused = false;
-    emits("blur", event);
-    checkHtml5Validity();
-}
-
-function onFocus(event: Event): void {
-    isFocused.value = true;
-    if (parentField) parentField.isFocused = true;
-    emits("focus", event);
-}
-
-// --- Validation Feature ---
-
-const isValid = ref(true);
-const inputRef = ref<HTMLInputElement>();
-const textareaRef = ref<HTMLInputElement>();
-
-const elementRef = computed<HTMLInputElement>(() =>
-    props.type === "textarea" ? textareaRef.value : inputRef.value,
-);
-
-// This should cover all types of HTML elements that have properties related to
-// HTML constraint validation, e.g. .form and .validity.
-const validatableFormElementTypes =
-    typeof window === "undefined"
-        ? []
-        : [
-              HTMLButtonElement,
-              HTMLFieldSetElement,
-              HTMLInputElement,
-              HTMLObjectElement,
-              HTMLOutputElement,
-              HTMLSelectElement,
-              HTMLTextAreaElement,
-          ];
-
-type ValidatableFormElement = InstanceType<
-    (typeof validatableFormElementTypes)[number]
->;
-
-function asValidatableFormElement(el: unknown): ValidatableFormElement | null {
-    return validatableFormElementTypes.some((t) => el instanceof t)
-        ? (el as ValidatableFormElement)
-        : null;
-}
-
-/**
- * Check HTML5 validation, set isValid property.
- * If validation fail, send 'danger' type,
- * and error message to parent if it's a Field.
- */
-function checkHtml5Validity(): boolean {
-    if (!props.useHtml5Validation) return;
-
-    if (elementRef.value.validity.valid) {
-        setValidity(null, null);
-        isValid.value = true;
-    } else {
-        setInvalid();
-        isValid.value = false;
-    }
-
-    return isValid.value;
-}
-
-function setInvalid(): void {
-    const variant = "danger";
-    const message =
-        props.validationMessage || elementRef.value.validationMessage;
-    setValidity(variant, message);
-}
-
-function setValidity(variant, message): void {
-    nextTick(() => {
-        if (parentField) {
-            // Set type only if not defined
-            if (!parentField.variant) {
-                parentField.fieldVariant = variant;
-            }
-            // Set message only if not defined
-            if (!parentField.message) {
-                parentField.fieldMessage = message;
-            }
-        }
-    });
-}
-
-function onInvalid(event: Event): void {
-    checkHtml5Validity();
-    const validatable = asValidatableFormElement(event.target);
-    if (validatable && parentField && props.useHtml5Validation) {
-        // We provide our own error message on the field, so we should suppress the browser's default tooltip.
-        // We still want to focus the form's first invalid input, though.
-        event.preventDefault();
-        let isFirstInvalid = false;
-        if (validatable.form != null) {
-            const formElements = validatable.form.elements;
-            for (let i = 0; i < formElements.length; ++i) {
-                const element = asValidatableFormElement(formElements.item(i));
-                if (element?.willValidate && !element.validity.valid) {
-                    isFirstInvalid = validatable === element;
-                    break;
-                }
-            }
-        }
-        if (isFirstInvalid) {
-            const fieldElement = parentField.$el;
-            const invalidHandler = getOption("reportInvalidInput");
-            if (invalidHandler instanceof Function) {
-                invalidHandler(validatable, fieldElement);
-            } else {
-                // We'll scroll to put the whole field in view, not just the element that triggered the event,
-                // which should mean that the message will be visible onscreen.
-                // scrollIntoViewIfNeeded() is a non-standard method (but a very common extension).
-                // If we can't use it, we'll just fall back to focusing the field.
-                const canScrollToField = fieldElement
-                    ? fieldElement.scrollIntoViewIfNeeded != undefined
-                    : false;
-                validatable.focus({ preventScroll: canScrollToField });
-                if (canScrollToField) {
-                    fieldElement.scrollIntoViewIfNeeded();
-                }
-            }
-        }
-    }
-    emits("invalid", event);
+    nextTick(() => setFocus());
 }
 
 // --- Computed Component Classes ---
@@ -515,15 +357,6 @@ const counterClasses = computed(() => [
 
 <template>
     <div :class="rootClasses">
-        <o-icon
-            v-if="icon"
-            :class="iconLeftClasses"
-            :clickable="iconClickable"
-            :icon="icon"
-            :pack="iconPack"
-            :size="size"
-            @click="iconClick('icon-click', $event)" />
-
         <input
             v-if="type !== 'textarea'"
             v-bind="$attrs"
@@ -550,13 +383,22 @@ const counterClasses = computed(() => [
             @invalid="onInvalid" />
 
         <o-icon
+            v-if="icon"
+            :class="iconLeftClasses"
+            :clickable="iconClickable"
+            :icon="icon"
+            :pack="iconPack"
+            :size="size"
+            @click="iconClick('icon-click', $event)" />
+
+        <o-icon
             v-if="hasIconRight"
             :class="iconRightClasses"
             :clickable="passwordReveal || clearable || iconRightClickable"
-            :icon="rightIcon"
+            :icon="computedIconRight"
             :pack="iconPack"
             :size="size"
-            :variant="rightIconVariant"
+            :variant="computedIconRightVariant"
             both
             @click="rightIconClick" />
 
