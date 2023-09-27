@@ -49,7 +49,7 @@ const props = defineProps({
     /** Upload will be expanded (full-width) */
     expanded: { type: Boolean, default: false },
     /** Replace last chosen files every time (like native file input element) */
-    native: { type: Boolean, default: false },
+    native: { type: Boolean, default: true },
     // add class props (will not be displayed in the docs)
     ...useClassProps([
         "rootClass",
