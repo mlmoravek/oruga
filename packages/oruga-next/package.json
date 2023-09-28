@@ -8,7 +8,7 @@
   "type": "module",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.mjs",
-  "unpkg": "dist/oruga.min.js",
+  "unpkg": "dist/oruga.js",
   "typings": "dist/types/index.d.ts",
   "exports": {
     ".": {
@@ -36,7 +36,7 @@
   "bugs": {
     "url": "https://github.com/oruga-ui/oruga/issues"
   },
-  "scripts": {    
+  "scripts": {
     "dev": "vite",
     "build:vue": "rimraf dist && vite build && vite build --mode minify",
     "build:vue:watch": "vite build --watch",
