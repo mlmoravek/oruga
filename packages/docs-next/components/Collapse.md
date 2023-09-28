@@ -36,18 +36,13 @@ title: Collapse
 
 ### Props
 
-| Prop name | Description                        | Type   | Values | Default                                                                                      |
-| --------- | ---------------------------------- | ------ | ------ | -------------------------------------------------------------------------------------------- |
-| animation | Custom animation (transition name) | string | -      | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> |
-
-        "collapse: {<br>&nbsp;&nbsp;animation":
-        "fade",
-    <br>}</code> |
-
-| ariaId | | string | - | <code style='white-space: nowrap; padding: 0;'>""</code> |
-| open | Whether collapse is open or not, v-model:open to make it two-way binding | boolean | - | <code style='white-space: nowrap; padding: 0;'>true</code> |
-| override | | boolean | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| position | Trigger position | string | `top`, `bottom` | <code style='white-space: nowrap; padding: 0;'>"top"</code> |
+| Prop name | Description                                                              | Type    | Values          | Default                                                                                                                                                   |
+| --------- | ------------------------------------------------------------------------ | ------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| animation | Custom animation (transition name)                                       | string  | -               | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> "collapse: {<br>&nbsp;&nbsp;animation": "fade", <br>}</code> |
+| ariaId    |                                                                          | string  | -               | <code style='white-space: nowrap; padding: 0;'>""</code>                                                                                                  |
+| open      | Whether collapse is open or not, v-model:open to make it two-way binding | boolean | -               | <code style='white-space: nowrap; padding: 0;'>true</code>                                                                                                |
+| override  |                                                                          | boolean | -               | <code style='white-space: nowrap; padding: 0;'></code>                                                                                                    |
+| position  | Trigger position                                                         | string  | `top`, `bottom` | <code style='white-space: nowrap; padding: 0;'>"top"</code>                                                                                               |
 
 ### Events
 

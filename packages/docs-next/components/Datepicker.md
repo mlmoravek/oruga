@@ -36,106 +36,62 @@ title: Datepicker
 
 ### Props
 
-| Prop name         | Description                               | Type    | Values | Default                                                                                      |
-| ----------------- | ----------------------------------------- | ------- | ------ | -------------------------------------------------------------------------------------------- |
-| appendToBody      |                                           | boolean | -      | <code style='white-space: nowrap; padding: 0;'></code>                                       |
-| ariaNextLabel     |                                           | string  | -      | <code style='white-space: nowrap; padding: 0;'></code>                                       |
-| ariaPreviousLabel |                                           | string  | -      | <code style='white-space: nowrap; padding: 0;'></code>                                       |
-| autocomplete      | Native options to use in HTML5 validation | string  | -      | <code style='white-space: nowrap; padding: 0;'></code>                                       |
-| closeOnClick      |                                           | boolean | -      | <code style='white-space: nowrap; padding: 0;'>true</code>                                   |
-| dateCreator       |                                           | func    | -      | Default function (see source code)                                                           |
-| dateFormatter     |                                           | func    | -      | Default function (see source code)                                                           |
-| dateParser        |                                           | func    | -      | Default function (see source code)                                                           |
-| dayNames          |                                           | array   | -      | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> |
-
-    "datepicker: {<br>&nbsp;&nbsp;dayNames":
-    undefined,
-
-<br>}</code> |
-| disabled | | boolean | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| editable | | boolean | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| events | | array | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| expanded | Makes input full width when inside a grouped or addon field | boolean | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| firstDayOfWeek | | number | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>
-"datepicker: {<br>&nbsp;&nbsp;firstDayOfWeek":
-0,
-<br>}</code> |
-| focusedDate | | Date | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| icon | Icon name to be added | string | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| iconNext | | string | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>
-"datepicker: {<br>&nbsp;&nbsp;iconNext":
-"chevron-right",
-<br>}</code> |
-| iconPack | Icon pack to use | string | `mdi`, `fa`, `fas and any other custom icon pack` | <code style='white-space: nowrap; padding: 0;'></code> |
-| iconPrev | | string | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>
-"datepicker: {<br>&nbsp;&nbsp;iconPrev":
-"chevron-left",
-<br>}</code> |
-| iconRight | | string | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| iconRightClickable | | boolean | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| indicators | | string | - | <code style='white-space: nowrap; padding: 0;'>"dots"</code> |
-| inline | | boolean | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| locale | | string\|array | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp; "locale": undefined<br>}</code> |
-| maxDate | | Date | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| maxlength | Same as native maxlength, plus character counter | number\|string | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| minDate | | Date | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| mobileBreakpoint | Mobile breakpoint as max-width value | string | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| mobileModal | | boolean | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>
-"datepicker: {<br>&nbsp;&nbsp;mobileModal":
-true,
-<br>}</code> |
-| mobileNative | | boolean | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>
-"datepicker: {<br>&nbsp;&nbsp;mobileNative":
-true,
-<br>}</code> |
-| modelValue | | date\|array | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| monthNames | | array | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>
-"datepicker: {<br>&nbsp;&nbsp;monthNames":
-undefined,
-<br>}</code> |
-| multiple | | boolean | - | <code style='white-space: nowrap; padding: 0;'>false</code> |
-| nearbyMonthDays | | boolean | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>
-"datepicker: {<br>&nbsp;&nbsp;nearbyMonthDays":
-true,
-<br>}</code> |
-| nearbySelectableMonthDays | | boolean | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>
-"datepicker: {<br>&nbsp;&nbsp;nearbySelectableMonthDays":
-false,
-<br>}</code> |
-| openOnFocus | | boolean | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| override | | boolean | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| placeholder | | string | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| position | | string | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| range | | boolean | - | <code style='white-space: nowrap; padding: 0;'>false</code> |
-| rounded | Makes the element rounded | boolean | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| rulesForFirstWeek | | number | - | Default function (see source code) |
-| selectableDates | | array\|func | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| showWeekNumber | | boolean | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>
-"datepicker: {<br>&nbsp;&nbsp;showWeekNumber":
-false,
-<br>}</code> |
-| size | Size of button, optional | string | `small`, `medium`, `large` | <code style='white-space: nowrap; padding: 0;'></code> |
-| statusIcon | Show status icon using field and variant prop | boolean | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp; "statusIcon": true<br>}</code> |
-| trapFocus | | boolean | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>
-"datepicker: {<br>&nbsp;&nbsp;trapFocus":
-true,
-<br>}</code> |
-| type | | string | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| unselectableDates | | array\|func | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| unselectableDaysOfWeek | | array | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>
-"datepicker: {<br>&nbsp;&nbsp;unselectableDaysOfWeek":
-undefined,
-<br>}</code> |
-| useHtml5Validation | Enable html 5 native validation | boolean | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp; "useHtml5Validation": true<br>}</code> |
-| validationMessage | The message which is shown when a validation error occurs | string | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| weekNumberClickable | | boolean | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>
-"datepicker: {<br>&nbsp;&nbsp;weekNumberClickable":
-false,
-<br>}</code> |
-| yearsRange | | array | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>
-"datepicker: {<br>&nbsp;&nbsp;yearsRange":
-[-100, 10],
-<br>}</code> |
+| Prop name                 | Description                                                 | Type           | Values                                            | Default                                                                                                                                                                    |
+| ------------------------- | ----------------------------------------------------------- | -------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| appendToBody              |                                                             | boolean        | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                                                                                     |
+| ariaNextLabel             |                                                             | string         | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                                                                                     |
+| ariaPreviousLabel         |                                                             | string         | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                                                                                     |
+| autocomplete              | Native options to use in HTML5 validation                   | string         | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                                                                                     |
+| closeOnClick              |                                                             | boolean        | -                                                 | <code style='white-space: nowrap; padding: 0;'>true</code>                                                                                                                 |
+| dateCreator               |                                                             | func           | -                                                 | Default function (see source code)                                                                                                                                         |
+| dateFormatter             |                                                             | func           | -                                                 | Default function (see source code)                                                                                                                                         |
+| dateParser                |                                                             | func           | -                                                 | Default function (see source code)                                                                                                                                         |
+| dayNames                  |                                                             | array          | -                                                 | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> "datepicker: {<br>&nbsp;&nbsp;dayNames": undefined,<br>}</code>               |
+| disabled                  |                                                             | boolean        | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                                                                                     |
+| editable                  |                                                             | boolean        | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                                                                                     |
+| events                    |                                                             | array          | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                                                                                     |
+| expanded                  | Makes input full width when inside a grouped or addon field | boolean        | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                                                                                     |
+| firstDayOfWeek            |                                                             | number         | -                                                 | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> "datepicker: {<br>&nbsp;&nbsp;firstDayOfWeek": 0, <br>}</code>                |
+| focusedDate               |                                                             | Date           | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                                                                                     |
+| icon                      | Icon name to be added                                       | string         | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                                                                                     |
+| iconNext                  |                                                             | string         | -                                                 | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> "datepicker: {<br>&nbsp;&nbsp;iconNext": "chevron-right", <br>}</code>        |
+| iconPack                  | Icon pack to use                                            | string         | `mdi`, `fa`, `fas and any other custom icon pack` | <code style='white-space: nowrap; padding: 0;'></code>                                                                                                                     |
+| iconPrev                  |                                                             | string         | -                                                 | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> "datepicker: {<br>&nbsp;&nbsp;iconPrev": "chevron-left", <br>}</code>         |
+| iconRight                 |                                                             | string         | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                                                                                     |
+| iconRightClickable        |                                                             | boolean        | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                                                                                     |
+| indicators                |                                                             | string         | -                                                 | <code style='white-space: nowrap; padding: 0;'>"dots"</code>                                                                                                               |
+| inline                    |                                                             | boolean        | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                                                                                     |
+| locale                    |                                                             | string\|array  | -                                                 | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp; "locale": undefined<br>}</code>                              |
+| maxDate                   |                                                             | Date           | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                                                                                     |
+| maxlength                 | Same as native maxlength, plus character counter            | number\|string | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                                                                                     |
+| minDate                   |                                                             | Date           | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                                                                                     |
+| mobileBreakpoint          | Mobile breakpoint as max-width value                        | string         | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                                                                                     |
+| mobileModal               |                                                             | boolean        | -                                                 | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> "datepicker: {<br>&nbsp;&nbsp;mobileModal": true, <br>}</code>                |
+| mobileNative              |                                                             | boolean        | -                                                 | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> "datepicker: {<br>&nbsp;&nbsp;mobileNative": true, <br>}</code>               |
+| modelValue                |                                                             | date\|array    | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                                                                                     |
+| monthNames                |                                                             | array          | -                                                 | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> "datepicker: {<br>&nbsp;&nbsp;monthNames": undefined,<br>}</code>             |
+| multiple                  |                                                             | boolean        | -                                                 | <code style='white-space: nowrap; padding: 0;'>false</code>                                                                                                                |
+| nearbyMonthDays           |                                                             | boolean        | -                                                 | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> "datepicker: {<br>&nbsp;&nbsp;nearbyMonthDays": true, <br>}</code>            |
+| nearbySelectableMonthDays |                                                             | boolean        | -                                                 | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> "datepicker: {<br>&nbsp;&nbsp;nearbySelectableMonthDays": false, <br>}</code> |
+| openOnFocus               |                                                             | boolean        | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                                                                                     |
+| override                  |                                                             | boolean        | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                                                                                     |
+| placeholder               |                                                             | string         | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                                                                                     |
+| position                  |                                                             | string         | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                                                                                     |
+| range                     |                                                             | boolean        | -                                                 | <code style='white-space: nowrap; padding: 0;'>false</code>                                                                                                                |
+| rounded                   | Makes the element rounded                                   | boolean        | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                                                                                     |
+| rulesForFirstWeek         |                                                             | number         | -                                                 | Default function (see source code)                                                                                                                                         |
+| selectableDates           |                                                             | array\|func    | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                                                                                     |
+| showWeekNumber            |                                                             | boolean        | -                                                 | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> "datepicker: {<br>&nbsp;&nbsp;showWeekNumber": false, <br>}</code>            |
+| size                      | Size of button, optional                                    | string         | `small`, `medium`, `large`                        | <code style='white-space: nowrap; padding: 0;'></code>                                                                                                                     |
+| statusIcon                | Show status icon using field and variant prop               | boolean        | -                                                 | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp; "statusIcon": true<br>}</code>                               |
+| trapFocus                 |                                                             | boolean        | -                                                 | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> "datepicker: {<br>&nbsp;&nbsp;trapFocus": true, <br>}</code>                  |
+| type                      |                                                             | string         | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                                                                                     |
+| unselectableDates         |                                                             | array\|func    | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                                                                                     |
+| unselectableDaysOfWeek    |                                                             | array          | -                                                 | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> "datepicker: {<br>&nbsp;&nbsp;unselectableDaysOfWeek": undefined,<br>}</code> |
+| useHtml5Validation        | Enable html 5 native validation                             | boolean        | -                                                 | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp; "useHtml5Validation": true<br>}</code>                       |
+| validationMessage         | The message which is shown when a validation error occurs   | string         | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                                                                                     |
+| weekNumberClickable       |                                                             | boolean        | -                                                 | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> "datepicker: {<br>&nbsp;&nbsp;weekNumberClickable": false, <br>}</code>       |
+| yearsRange                |                                                             | array          | -                                                 | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> "datepicker: {<br>&nbsp;&nbsp;yearsRange": [-100, 10],<br>}</code>            |
 
 ### Events
 

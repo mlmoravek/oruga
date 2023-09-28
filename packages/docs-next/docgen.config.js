@@ -185,6 +185,7 @@ function tmplProps(props, name) {
             if(d.includes("getOptions")) {
                 // old components
                 params = d.substring(d.lastIndexOf("("), d.lastIndexOf(")"))
+                    .replace(/\r\n/g, "")
                     .split(",");
                 if (params.length > 3) {
                     // In case last param contains a ','
@@ -204,6 +205,7 @@ function tmplProps(props, name) {
             } else {
                 // refactored components
                 params = d.substring(d.lastIndexOf("(") + 1, d.lastIndexOf(")"))
+                    .replace(/\r\n/g, "")
                     .split(",");
                 if (params.length > 3) {
                     // In case last param contains a ','
@@ -221,7 +223,6 @@ function tmplProps(props, name) {
                     d = `<div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp;${value}<br>}</code>`;
                 }
             }
-            if(name === "Carousel") console.log(params, configParts);
         }
         else if(d.includes("=>")) {
             d = "Default function (see source code)";
