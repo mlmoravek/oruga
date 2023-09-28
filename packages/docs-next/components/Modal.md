@@ -36,29 +36,31 @@ title: Modal
 
 ### Props
 
-| Prop name | Description                                                                   | Type    | Values | Default                                                                                                         |
-| --------- | ----------------------------------------------------------------------------- | ------- | ------ | --------------------------------------------------------------------------------------------------------------- |
-| active    | Whether modal is active or not, use v-model:active to make it two-way binding | boolean | -      | <code style='white-space: nowrap; padding: 0;'></code>                                                          |
-| animation | Custom animation (transition name)                                            | string  | -      | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp;): |
+| Prop name | Description                                                                   | Type    | Values | Default                                                                                      |
+| --------- | ----------------------------------------------------------------------------- | ------- | ------ | -------------------------------------------------------------------------------------------- |
+| active    | Whether modal is active or not, use v-model:active to make it two-way binding | boolean | -      | <code style='white-space: nowrap; padding: 0;'></code>                                       |
+| animation | Custom animation (transition name)                                            | string  | -      | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> |
 
+        "modal: {<br>&nbsp;&nbsp;animation":
         "zoom-out",
     <br>}</code> |
 
 | ariaLabel | | string | - | <code style='white-space: nowrap; padding: 0;'></code> |
 | ariaModal | | boolean | - | <code style='white-space: nowrap; padding: 0;'></code> |
 | ariaRole | | string | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| autoFocus | Automatically focus modal when active | boolean | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp;): true<br>}</code> |
-| canCancel | Can close Modal by clicking 'X', pressing escape or clicking outside | array\|boolean | `escape`, `x`, `outside`, `button` | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp;): [
+| autoFocus | Automatically focus modal when active | boolean | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> "modal: {<br>&nbsp;&nbsp;autoFocus": true<br>}</code> |
+| canCancel | Can close Modal by clicking 'X', pressing escape or clicking outside | array\|boolean | `escape`, `x`, `outside`, `button` | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> "modal: {<br>&nbsp;&nbsp;canCancel": [
 "escape",
 "x",
 "outside",
 "button",
 ]<br>}</code> |
-| closeIcon | Icon name | string | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp;): "close"<br>}</code> |
+| closeIcon | Icon name | string | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> "modal: {<br>&nbsp;&nbsp;closeIcon": "close"<br>}</code> |
 | closeIconSize | | string | - | <code style='white-space: nowrap; padding: 0;'>"medium"</code> |
 | component | Component to be injected, used to open a component modal programmatically. Close modal within the component by emitting a 'close' event — this.$emit('close') | Object as () =&gt; Component | - | <code style='white-space: nowrap; padding: 0;'></code> |
 | content | Text content | string | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| destroyOnHide | Destroy modal on hide | boolean | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp;):
+| destroyOnHide | Destroy modal on hide | boolean | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>
+"modal: {<br>&nbsp;&nbsp;destroyOnHide":
 true,
 <br>}</code> |
 | events | Events to be binded to the injected component | object | - | <code style='white-space: nowrap; padding: 0;'>{}</code> |
@@ -68,9 +70,9 @@ true,
 | onClose | Callback function to call after close (programmatically close or user canceled) | func | - | Default function (see source code) |
 | override | | boolean | - | <code style='white-space: nowrap; padding: 0;'></code> |
 | props | Props to be binded to the injected component | object | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| scroll | clip to remove the body scrollbar, keep to have a non scrollable scrollbar to avoid shifting background, but will set body to position fixed, might break some layouts | string | `keep`, `clip` | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp;): "keep"<br>}</code> |
-| trapFocus | Trap focus inside the modal. | boolean | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp;): true<br>}</code> |
-| width | Width of the Modal | string\|number | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp;): 960<br>}</code> |
+| scroll | clip to remove the body scrollbar, keep to have a non scrollable scrollbar to avoid shifting background, but will set body to position fixed, might break some layouts | string | `keep`, `clip` | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> "modal: {<br>&nbsp;&nbsp;scroll": "keep"<br>}</code> |
+| trapFocus | Trap focus inside the modal. | boolean | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> "modal: {<br>&nbsp;&nbsp;trapFocus": true<br>}</code> |
+| width | Width of the Modal | string\|number | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> "modal: {<br>&nbsp;&nbsp;width": 960<br>}</code> |
 
 ### Events
 

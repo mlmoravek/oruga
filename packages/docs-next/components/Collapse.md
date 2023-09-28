@@ -36,10 +36,11 @@ title: Collapse
 
 ### Props
 
-| Prop name | Description                        | Type   | Values | Default                                                                                                         |
-| --------- | ---------------------------------- | ------ | ------ | --------------------------------------------------------------------------------------------------------------- |
-| animation | Custom animation (transition name) | string | -      | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp;): |
+| Prop name | Description                        | Type   | Values | Default                                                                                      |
+| --------- | ---------------------------------- | ------ | ------ | -------------------------------------------------------------------------------------------- |
+| animation | Custom animation (transition name) | string | -      | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> |
 
+        "collapse: {<br>&nbsp;&nbsp;animation":
         "fade",
     <br>}</code> |
 

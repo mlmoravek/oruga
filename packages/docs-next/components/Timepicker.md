@@ -36,29 +36,30 @@ title: Timepicker
 
 ### Props
 
-| Prop name        | Description                                                 | Type           | Values                                            | Default                                                                                                         |
-| ---------------- | ----------------------------------------------------------- | -------------- | ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| appendToBody     |                                                             | boolean        | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                          |
-| autocomplete     | Native options to use in HTML5 validation                   | string         | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                          |
-| defaultMinutes   |                                                             | number         | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                          |
-| defaultSeconds   |                                                             | number         | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                          |
-| disabled         |                                                             | boolean        | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                          |
-| editable         |                                                             | boolean        | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                          |
-| enableSeconds    |                                                             | boolean        | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                          |
-| expanded         | Makes input full width when inside a grouped or addon field | boolean        | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                          |
-| hourFormat       |                                                             | string         | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                          |
-| icon             | Icon name to be added                                       | string         | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                          |
-| iconPack         | Icon pack to use                                            | string         | `mdi`, `fa`, `fas and any other custom icon pack` | <code style='white-space: nowrap; padding: 0;'></code>                                                          |
-| incrementHours   |                                                             | number         | -                                                 | <code style='white-space: nowrap; padding: 0;'>1</code>                                                         |
-| incrementMinutes |                                                             | number         | -                                                 | <code style='white-space: nowrap; padding: 0;'>1</code>                                                         |
-| incrementSeconds |                                                             | number         | -                                                 | <code style='white-space: nowrap; padding: 0;'>1</code>                                                         |
-| inline           |                                                             | boolean        | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                          |
-| maxTime          |                                                             | date           | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                          |
-| maxlength        | Same as native maxlength, plus character counter            | number\|string | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                          |
-| minTime          |                                                             | date           | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                          |
-| mobileBreakpoint | Mobile breakpoint as max-width value                        | string         | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                                          |
-| mobileNative     |                                                             | boolean        | -                                                 | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp;): |
+| Prop name        | Description                                                 | Type           | Values                                            | Default                                                                                      |
+| ---------------- | ----------------------------------------------------------- | -------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| appendToBody     |                                                             | boolean        | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                       |
+| autocomplete     | Native options to use in HTML5 validation                   | string         | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                       |
+| defaultMinutes   |                                                             | number         | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                       |
+| defaultSeconds   |                                                             | number         | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                       |
+| disabled         |                                                             | boolean        | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                       |
+| editable         |                                                             | boolean        | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                       |
+| enableSeconds    |                                                             | boolean        | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                       |
+| expanded         | Makes input full width when inside a grouped or addon field | boolean        | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                       |
+| hourFormat       |                                                             | string         | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                       |
+| icon             | Icon name to be added                                       | string         | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                       |
+| iconPack         | Icon pack to use                                            | string         | `mdi`, `fa`, `fas and any other custom icon pack` | <code style='white-space: nowrap; padding: 0;'></code>                                       |
+| incrementHours   |                                                             | number         | -                                                 | <code style='white-space: nowrap; padding: 0;'>1</code>                                      |
+| incrementMinutes |                                                             | number         | -                                                 | <code style='white-space: nowrap; padding: 0;'>1</code>                                      |
+| incrementSeconds |                                                             | number         | -                                                 | <code style='white-space: nowrap; padding: 0;'>1</code>                                      |
+| inline           |                                                             | boolean        | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                       |
+| maxTime          |                                                             | date           | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                       |
+| maxlength        | Same as native maxlength, plus character counter            | number\|string | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                       |
+| minTime          |                                                             | date           | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                       |
+| mobileBreakpoint | Mobile breakpoint as max-width value                        | string         | -                                                 | <code style='white-space: nowrap; padding: 0;'></code>                                       |
+| mobileNative     |                                                             | boolean        | -                                                 | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> |
 
+        "timepicker: {<br>&nbsp;&nbsp;mobileNative":
         true,
     <br>}</code> |
 
@@ -69,12 +70,12 @@ title: Timepicker
 | resetOnMeridianChange | | boolean | - | <code style='white-space: nowrap; padding: 0;'>false</code> |
 | rounded | Makes the element rounded | boolean | - | <code style='white-space: nowrap; padding: 0;'></code> |
 | size | Size of button, optional | string | `small`, `medium`, `large` | <code style='white-space: nowrap; padding: 0;'></code> |
-| statusIcon | Show status icon using field and variant prop | boolean | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp;): true<br>}</code> |
+| statusIcon | Show status icon using field and variant prop | boolean | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp; "statusIcon": true<br>}</code> |
 | timeCreator | | func | - | Default function (see source code) |
 | timeFormatter | | func | - | Default function (see source code) |
 | timeParser | | func | - | Default function (see source code) |
 | unselectableTimes | | array | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| useHtml5Validation | Enable html 5 native validation | boolean | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp;): true<br>}</code> |
+| useHtml5Validation | Enable html 5 native validation | boolean | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp; "useHtml5Validation": true<br>}</code> |
 | v-model | | date | - | <code style='white-space: nowrap; padding: 0;'></code> |
 | validationMessage | The message which is shown when a validation error occurs | string | - | <code style='white-space: nowrap; padding: 0;'></code> |
 

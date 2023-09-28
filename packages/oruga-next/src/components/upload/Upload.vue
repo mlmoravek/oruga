@@ -1,7 +1,4 @@
-<script
-    setup
-    lang="ts"
-    generic="T extends Object | typeof File | Object[] | (typeof File)[]">
+<script setup lang="ts">
 import { baseComponentProps } from "@/mixins/SharedProps";
 import { getOption } from "@/utils/config";
 import {
@@ -29,7 +26,10 @@ const props = defineProps({
     // add global shared props (will not be displayed in the docs)
     ...baseComponentProps,
     /** @model */
-    modelValue: { type: Object as PropType<T>, default: undefined },
+    modelValue: {
+        type: Object as PropType<Object | Object[] | File | File[]>,
+        default: undefined,
+    },
     /**
      * Color of the control, optional
      * @values primary, info, success, warning, danger, and any other custom color
@@ -63,7 +63,7 @@ const props = defineProps({
 
 const emits = defineEmits<{
     /** modelValue prop two-way binding */
-    (e: "update:modelValue", value: T): void;
+    (e: "update:modelValue", value: Object | Object[] | File | File[]): void;
     /** on input focus event */
     (e: "focus", evt: Event): void;
     /** on input blur event */
@@ -73,7 +73,10 @@ const emits = defineEmits<{
 }>();
 const inputRef = ref();
 
-const vmodel = useVModelBinding<T>(props, emits);
+const vmodel = useVModelBinding<Object | Object[] | File | File[]>(
+    props,
+    emits,
+);
 
 // use form input functionality
 const { checkHtml5Validity, isValid } = useFormInput(inputRef, emits);

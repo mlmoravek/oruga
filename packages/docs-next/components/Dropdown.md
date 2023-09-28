@@ -36,10 +36,11 @@ title: Dropdown
 
 ### Props
 
-| Prop name | Description                        | Type   | Values | Default                                                                                                         |
-| --------- | ---------------------------------- | ------ | ------ | --------------------------------------------------------------------------------------------------------------- |
-| animation | Custom animation (transition name) | string | -      | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp;): |
+| Prop name | Description                        | Type   | Values | Default                                                                                      |
+| --------- | ---------------------------------- | ------ | ------ | -------------------------------------------------------------------------------------------- |
+| animation | Custom animation (transition name) | string | -      | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> |
 
+        "dropdown: {<br>&nbsp;&nbsp;animation":
         "fade",
     <br>}</code> |
 
@@ -51,17 +52,18 @@ title: Dropdown
 | expanded | Dropdown will be expanded (full-width) | boolean | - | <code style='white-space: nowrap; padding: 0;'></code> |
 | inline | Dropdown content (items) are shown inline, trigger is removed | boolean | - | <code style='white-space: nowrap; padding: 0;'></code> |
 | label | Trigger label, unnecessary when trgger slot is used | string | - | |
-| maxHeight | Max height of dropdown content | string\|number | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp;): 200<br>}</code> |
-| menuTag | Dropdown menu tag name | string \| Component | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp;): "div"<br>}</code> |
+| maxHeight | Max height of dropdown content | string\|number | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> "dropdown: {<br>&nbsp;&nbsp;maxHeight": 200<br>}</code> |
+| menuTag | Dropdown menu tag name | string \| Component | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> "dropdown: {<br>&nbsp;&nbsp;menuTag": "div"<br>}</code> |
 | mobileBreakpoint | Mobile breakpoint as max-width value | string | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| mobileModal | Dropdown content (items) are shown into a modal on mobile | boolean | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp;):
+| mobileModal | Dropdown content (items) are shown into a modal on mobile | boolean | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>
+"dropdown: {<br>&nbsp;&nbsp;mobileModal":
 true,
 <br>}</code> |
 | multiple | Allows multiple selections | boolean | - | <code style='white-space: nowrap; padding: 0;'></code> |
 | override | | boolean | - | <code style='white-space: nowrap; padding: 0;'></code> |
 | position | Optional, position of the dropdown relative to the trigger | string | `top-right`, `top-left`, `bottom-left` | <code style='white-space: nowrap; padding: 0;'></code> |
 | scrollable | Dropdown content will be scrollable | boolean | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| trapFocus | Trap focus inside the dropdown. | boolean | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp;): true<br>}</code> |
+| trapFocus | Trap focus inside the dropdown. | boolean | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> "dropdown: {<br>&nbsp;&nbsp;trapFocus": true<br>}</code> |
 | triggerTabindex | Set the tabindex attribute on the dropdown trigger div (-1 to prevent selection via tab key) | number | - | <code style='white-space: nowrap; padding: 0;'>0</code> |
 | triggers | Dropdown will be triggered by any events | array | `click`, `hover`, `contextmenu`, `focus` | <code style='white-space: nowrap; padding: 0;'>["click"]</code> |
 | v-model | | string\|number\|boolean\|object\|array | - | <code style='white-space: nowrap; padding: 0;'>null</code> |
@@ -93,16 +95,16 @@ true,
 
 ### Props
 
-| Prop name | Description                                           | Type                                   | Values | Default                                                                                                                           |
-| --------- | ----------------------------------------------------- | -------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------- |
-| ariaRole  |                                                       | string                                 | -      | <code style='white-space: nowrap; padding: 0;'>""</code>                                                                          |
-| clickable | Item is clickable and emit an event                   | boolean                                | -      | <code style='white-space: nowrap; padding: 0;'>true</code>                                                                        |
-| disabled  | Item is disabled                                      | boolean                                | -      | <code style='white-space: nowrap; padding: 0;'></code>                                                                            |
-| label     | Item label, unnecessary when default slot is used     | string                                 | -      |                                                                                                                                   |
-| override  |                                                       | boolean                                | -      | <code style='white-space: nowrap; padding: 0;'></code>                                                                            |
-| tabindex  |                                                       | number\|string                         | -      | <code style='white-space: nowrap; padding: 0;'>0</code>                                                                           |
-| tag       | Dropdown item tag name                                | string \| Component                    | -      | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp;): "div"<br>}</code> |
-| value     | The value that will be returned on events and v-model | string\|number\|boolean\|object\|array | -      | <code style='white-space: nowrap; padding: 0;'></code>                                                                            |
+| Prop name | Description                                           | Type                                   | Values | Default                                                                                                                                              |
+| --------- | ----------------------------------------------------- | -------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ariaRole  |                                                       | string                                 | -      | <code style='white-space: nowrap; padding: 0;'>""</code>                                                                                             |
+| clickable | Item is clickable and emit an event                   | boolean                                | -      | <code style='white-space: nowrap; padding: 0;'>true</code>                                                                                           |
+| disabled  | Item is disabled                                      | boolean                                | -      | <code style='white-space: nowrap; padding: 0;'></code>                                                                                               |
+| label     | Item label, unnecessary when default slot is used     | string                                 | -      |                                                                                                                                                      |
+| override  |                                                       | boolean                                | -      | <code style='white-space: nowrap; padding: 0;'></code>                                                                                               |
+| tabindex  |                                                       | number\|string                         | -      | <code style='white-space: nowrap; padding: 0;'>0</code>                                                                                              |
+| tag       | Dropdown item tag name                                | string \| Component                    | -      | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> "dropdown: {<br>&nbsp;&nbsp;itemTag": "div"<br>}</code> |
+| value     | The value that will be returned on events and v-model | string\|number\|boolean\|object\|array | -      | <code style='white-space: nowrap; padding: 0;'></code>                                                                                               |
 
 ### Events
 

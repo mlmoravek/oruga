@@ -36,15 +36,16 @@ title: Notification
 
 ### Props
 
-| Prop name      | Description                                                                                                             | Type    | Values | Default                                                                                                         |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------- | ------- | ------ | --------------------------------------------------------------------------------------------------------------- |
-| active         | Whether modal is active or not, use the .sync modifier (Vue 2.x) or v-model:active (Vue 3.x) to make it two-way binding | boolean | -      | <code style='white-space: nowrap; padding: 0;'>true</code>                                                      |
-| animation      | Custom animation (transition name).                                                                                     | string  | -      | <code style='white-space: nowrap; padding: 0;'>"fade"</code>                                                    |
-| ariaCloseLabel | Label for the close button, to be read by accessibility screenreaders.                                                  | string  | -      | <code style='white-space: nowrap; padding: 0;'></code>                                                          |
-| autoClose      | Hide notification after duration only not programmatic.                                                                 | boolean | -      | <code style='white-space: nowrap; padding: 0;'>false</code>                                                     |
-| closable       | Adds an 'X' button that closes the notification.                                                                        | boolean | -      | <code style='white-space: nowrap; padding: 0;'>false</code>                                                     |
-| closeIcon      | Close icon name                                                                                                         | string  | -      | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp;): |
+| Prop name      | Description                                                                                                             | Type    | Values | Default                                                                                      |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------- | ------- | ------ | -------------------------------------------------------------------------------------------- |
+| active         | Whether modal is active or not, use the .sync modifier (Vue 2.x) or v-model:active (Vue 3.x) to make it two-way binding | boolean | -      | <code style='white-space: nowrap; padding: 0;'>true</code>                                   |
+| animation      | Custom animation (transition name).                                                                                     | string  | -      | <code style='white-space: nowrap; padding: 0;'>"fade"</code>                                 |
+| ariaCloseLabel | Label for the close button, to be read by accessibility screenreaders.                                                  | string  | -      | <code style='white-space: nowrap; padding: 0;'></code>                                       |
+| autoClose      | Hide notification after duration only not programmatic.                                                                 | boolean | -      | <code style='white-space: nowrap; padding: 0;'>false</code>                                  |
+| closable       | Adds an 'X' button that closes the notification.                                                                        | boolean | -      | <code style='white-space: nowrap; padding: 0;'>false</code>                                  |
+| closeIcon      | Close icon name                                                                                                         | string  | -      | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> |
 
+        "notification: {<br>&nbsp;&nbsp;closeIcon":
         "close",
     <br>}</code> |
 
@@ -88,14 +89,16 @@ title: Notification
 
 ### Props
 
-| Prop name | Description                                                                                                                                                         | Type   | Values | Default                                                                                                         |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ | --------------------------------------------------------------------------------------------------------------- |
-| container | DOM element the toast will be created on. Note that this also changes the position of the toast from fixed to absolute. Meaning that the container should be fixed. | string | -      | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp;): |
+| Prop name | Description                                                                                                                                                         | Type   | Values | Default                                                                                      |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ | -------------------------------------------------------------------------------------------- |
+| container | DOM element the toast will be created on. Note that this also changes the position of the toast from fixed to absolute. Meaning that the container should be fixed. | string | -      | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'> |
 
+        "notification: {<br>&nbsp;&nbsp;containerElement":
         undefined,
     <br>}</code> |
 
-| duration | Visibility duration in miliseconds. | number | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp;):
+| duration | Visibility duration in miliseconds. | number | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>
+"notification: {<br>&nbsp;&nbsp;duration":
 1000,
 <br>}</code> |
 | indefinite | Show the Notification indefinitely until it is dismissed when programmatically. | boolean | - | <code style='white-space: nowrap; padding: 0;'>false</code> |
@@ -104,7 +107,8 @@ title: Notification
 | override | | boolean | - | <code style='white-space: nowrap; padding: 0;'></code> |
 | position | Which position the notification will appear when programmatically. | string | `top-right`, `top`, `top-left`, `bottom-right`, `bottom`, `bottom-left` | <code style='white-space: nowrap; padding: 0;'>"top"</code> |
 | propsNotification | | object | - | <code style='white-space: nowrap; padding: 0;'></code> |
-| queue | If should queue with others notices (snackbar/toast/notification). | boolean | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp;):
+| queue | If should queue with others notices (snackbar/toast/notification). | boolean | - | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>
+"notification: {<br>&nbsp;&nbsp;noticeQueue":
 undefined,
 <br>}</code> |
 | type | Type (color) of the notification, optional. | string | - | <code style='white-space: nowrap; padding: 0;'></code> |
