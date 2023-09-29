@@ -7,78 +7,47 @@ import {
     type PropType,
     type ComponentPublicInstance,
 } from "vue";
-import { baseComponentProps } from "@/mixins/SharedProps";
-import { useComputedClass, useClassProps } from "@/composables";
-
-import type { DatepickerEvent } from "./index";
+import { useComputedClass } from "@/composables";
+import {
+    useDatepickerMixins,
+    type DatepickerProps,
+    type DatepickerEvent,
+} from "./useDatepickerMixin";
+import { weeksInYear, firstWeekOffset } from "./datepickerUtils";
 
 defineOptions({
     name: "ODatepickerTableRow",
     configField: "datepicker",
-    inheritAttrs: false,
 });
 
 const props = defineProps({
-    // add global shared props (will not be displayed in the docs)
-    ...baseComponentProps,
-    dateCreator: { type: Function as PropType<() => Date>, required: true },
     day: { type: Number, required: true },
     week: { type: Array as PropType<Date[]>, required: true },
     month: { type: Number, required: true },
-    minDate: { type: Date, default: undefined },
-    maxDate: { type: Date, default: undefined },
     selectedDate: {
         type: [Date, Array] as PropType<Date | Date[]>,
         default: undefined,
     },
     events: { type: Array as PropType<DatepickerEvent[]>, default: undefined },
-    hoveredDateRange: { type: Array, default: undefined },
-    unselectableDates: { type: Array as PropType<Date[]>, default: undefined },
-    unselectableDaysOfWeek: {
-        type: Array as PropType<number[]>,
-        default: undefined,
+    hoveredDateRange: { type: Array as PropType<Date[]>, default: () => [] },
+    datepickerProps: {
+        type: Object as PropType<DatepickerProps>,
+        required: true,
     },
-    selectableDates: { type: Array as PropType<Date[]>, default: undefined },
-    showWeekNumber: { type: Boolean, default: false },
-    disabled: { type: Boolean, default: false },
-    indicators: { type: String, default: undefined },
-    nearbyMonthDays: { type: Boolean, default: false },
-    nearbySelectableMonthDays: { type: Boolean, default: false },
-    weekNumberClickable: { type: Boolean, default: false },
-    range: { type: Boolean, default: false },
-    multiple: { type: Boolean, default: false },
-    rulesForFirstWeek: { type: Number, required: true },
-    firstDayOfWeek: { type: Number, required: true },
-    // add class props (will not be displayed in the docs)
-    ...useClassProps([
-        "tableRowClass",
-        "tableCellClass",
-        "tableCellSelectedClass",
-        "tableCellFirstSelectedClass",
-        "tableCellWithinSelectedClass",
-        "tableCellLastSelectedClass",
-        "tableCellFirstHoveredClass",
-        "tableCellInvisibleClass",
-        "tableCellWithinHoveredClass",
-        "tableCellLastHoveredClass",
-        "tableCellTodayClass",
-        "tableCellSelectableClass",
-        "tableCellUnselectableClass",
-        "tableCellNearbyClass",
-        "tableCellEventsClass",
-        "tableEventClass",
-        "tableEventIndicatorsClass",
-        "tableEventsClass",
-        "tableEventVariantClass",
-    ]),
 });
 
 const emits = defineEmits<{
     (e: "select", value: Date): void;
-    (e: "rangeHoverEndDate", value: Date): void;
+    (e: "hover-enddate", value: Date): void;
     (e: "change-focus", value: Date): void;
     (e: "week-number-click", value: number): void;
 }>();
+
+const { isDateSelectable } = useDatepickerMixins(props);
+
+const datepicker = computed<DatepickerProps>(() => props.datepickerProps);
+
+const hasEvents = computed(() => !!props.events?.length);
 
 const dayRefs = ref(new Map());
 
@@ -86,8 +55,6 @@ function setDayRef(date: Date, el: Element | ComponentPublicInstance): void {
     const refKey = `day-${date.getMonth()}-${date.getDate()}`;
     if (el) dayRefs.value.set(refKey, el);
 }
-
-const hasEvents = computed(() => !!props.events?.length);
 
 watch(
     () => props.day,
@@ -104,16 +71,7 @@ watch(
 );
 
 function clickWeekNumber(week: number): void {
-    if (props.weekNumberClickable) emits("week-number-click", week);
-}
-
-function firstWeekOffset(year, dow, doy): number {
-    // first-week day -- which january is always in the first week (4 for iso, 1 for other)
-    const fwd = 7 + dow - doy;
-    // first-week day local weekday -- which local weekday is fwd
-    const firstJanuary = new Date(year, 0, fwd);
-    const fwdlw = (7 + firstJanuary.getDay() - dow) % 7;
-    return -fwdlw + fwd - 1;
+    if (datepicker.value.weekNumberClickable) emits("week-number-click", week);
 }
 
 function getSetDayOfYear(input): number {
@@ -125,20 +83,10 @@ function getSetDayOfYear(input): number {
     );
 }
 
-function daysInYear(year): number {
-    return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0 ? 366 : 365;
-}
-
-function weeksInYear(year, dow, doy): number {
-    const weekOffset = firstWeekOffset(year, dow, doy);
-    const weekOffsetNext = firstWeekOffset(year + 1, dow, doy);
-    return (daysInYear(year) - weekOffset + weekOffsetNext) / 7;
-}
-
 function getWeekNumber(mom): number {
-    const dow = props.firstDayOfWeek; // first day of week
+    const dow = datepicker.value.firstDayOfWeek; // first day of week
     // Rules for the first week : 1 for the 1st January, 4 for the 4th January
-    const doy = props.rulesForFirstWeek;
+    const doy = datepicker.value.rulesForFirstWeek;
     const weekOffset = firstWeekOffset(mom.getFullYear(), dow, doy);
     const week = Math.floor((getSetDayOfYear(mom) - weekOffset - 1) / 7) + 1;
     let resWeek;
@@ -154,54 +102,6 @@ function getWeekNumber(mom): number {
         resWeek = week;
     }
     return resWeek;
-}
-
-/*
- * Check that selected day is within earliest/latest params and is within current month
- */
-function selectableDate(day: Date): boolean {
-    const validity = [];
-
-    if (props.minDate) validity.push(day >= props.minDate);
-    if (props.maxDate) validity.push(day <= props.maxDate);
-
-    if (props.nearbyMonthDays && !props.nearbySelectableMonthDays)
-        validity.push(day.getMonth() === props.month);
-
-    if (props.selectableDates) {
-        for (let i = 0; i < props.selectableDates.length; i++) {
-            const enabledDate = props.selectableDates[i];
-            if (
-                day.getDate() === enabledDate.getDate() &&
-                day.getFullYear() === enabledDate.getFullYear() &&
-                day.getMonth() === enabledDate.getMonth()
-            ) {
-                return true;
-            } else {
-                validity.push(false);
-            }
-        }
-    }
-
-    if (props.unselectableDates) {
-        for (let i = 0; i < props.unselectableDates.length; i++) {
-            const disabledDate = props.unselectableDates[i];
-            validity.push(
-                day.getDate() !== disabledDate.getDate() ||
-                    day.getFullYear() !== disabledDate.getFullYear() ||
-                    day.getMonth() !== disabledDate.getMonth(),
-            );
-        }
-    }
-
-    if (props.unselectableDaysOfWeek) {
-        for (let i = 0; i < props.unselectableDaysOfWeek.length; i++) {
-            const dayOfWeek = props.unselectableDaysOfWeek[i];
-            validity.push(day.getDay() !== dayOfWeek);
-        }
-    }
-
-    return validity.indexOf(false) < 0;
 }
 
 function eventsDateMatch(day: Date): DatepickerEvent[] {
@@ -253,18 +153,18 @@ function onKeydown(event: KeyboardEvent, weekDay: Date): void {
 /*
  * Emit select event with chosen date as payload
  */
-function selectDate(day: Date): void {
-    if (props.disabled) return;
-    if (selectableDate(day)) emits("select", day);
+function selectDate(date: Date): void {
+    if (datepicker.value.disabled) return;
+    if (isDateSelectable(date, props.month)) emits("select", date);
 }
 
 function changeFocus(day, inc): void {
     const nextDay = new Date(day.getTime());
     nextDay.setDate(day.getDate() + inc);
     while (
-        (!props.minDate || nextDay > props.minDate) &&
-        (!props.maxDate || nextDay < props.maxDate) &&
-        !selectableDate(nextDay)
+        (!datepicker.value.minDate || nextDay > datepicker.value.minDate) &&
+        (!datepicker.value.maxDate || nextDay < datepicker.value.maxDate) &&
+        !isDateSelectable(nextDay, props.month)
     ) {
         nextDay.setDate(day.getDate() + Math.sign(inc));
     }
@@ -273,7 +173,7 @@ function changeFocus(day, inc): void {
 }
 
 function setRangeHoverEndDate(day): void {
-    if (props.range) emits("rangeHoverEndDate", day);
+    if (datepicker.value.range) emits("hover-enddate", day);
 }
 
 // --- Computed Component Classes ---
@@ -315,7 +215,7 @@ function cellClasses(day) {
                 "o-dpck__table__cell--selected",
             )]:
                 dateMatch(day, props.selectedDate) ||
-                dateWithin(day, props.selectedDate, props.multiple),
+                dateWithin(day, props.selectedDate, datepicker.value.multiple),
         },
         {
             [useComputedClass(
@@ -324,14 +224,14 @@ function cellClasses(day) {
             )]: dateMatch(
                 day,
                 Array.isArray(props.selectedDate) && props.selectedDate[0],
-                props.multiple,
+                datepicker.value.multiple,
             ),
         },
         {
             [useComputedClass(
                 "tableCellWithinSelectedClass",
                 "o-dpck__table__cell--within-selected",
-            )]: dateWithin(day, props.selectedDate, props.multiple),
+            )]: dateWithin(day, props.selectedDate, datepicker.value.multiple),
         },
         {
             [useComputedClass(
@@ -340,7 +240,7 @@ function cellClasses(day) {
             )]: dateMatch(
                 day,
                 Array.isArray(props.selectedDate) && props.selectedDate[1],
-                props.multiple,
+                datepicker.value.multiple,
             ),
         },
         {
@@ -373,32 +273,38 @@ function cellClasses(day) {
             [useComputedClass(
                 "tableCellTodayClass",
                 "o-dpck__table__cell--today",
-            )]: dateMatch(day, props.dateCreator()),
+            )]: dateMatch(day, datepicker.value.dateCreator()),
         },
         {
             [useComputedClass(
                 "tableCellSelectableClass",
                 "o-dpck__table__cell--selectable",
-            )]: selectableDate(day) && !props.disabled,
+            )]:
+                isDateSelectable(day, props.month) &&
+                !datepicker.value.disabled,
         },
         {
             [useComputedClass(
                 "tableCellUnselectableClass",
                 "o-dpck__table__cell--unselectable",
-            )]: !selectableDate(day) || props.disabled,
+            )]:
+                !isDateSelectable(day, props.month) ||
+                datepicker.value.disabled,
         },
         {
             [useComputedClass(
                 "tableCellInvisibleClass",
                 "o-dpck__table__cell--invisible",
-            )]: !props.nearbyMonthDays && day.getMonth() !== props.month,
+            )]:
+                !datepicker.value.nearbyMonthDays &&
+                day.getMonth() !== props.month,
         },
         {
             [useComputedClass(
                 "tableCellNearbyClass",
                 "o-dpck__table__cell--nearby",
             )]:
-                props.nearbySelectableMonthDays &&
+                datepicker.value.nearbySelectableMonthDays &&
                 day.getMonth() !== props.month,
         },
         {
@@ -411,7 +317,7 @@ function cellClasses(day) {
             [useComputedClass(
                 "tableCellTodayClass",
                 "o-dpck__table__cell--today",
-            )]: dateMatch(day, props.dateCreator()),
+            )]: dateMatch(day, datepicker.value.dateCreator()),
         },
     ];
 }
@@ -430,8 +336,8 @@ function eventClasses(event) {
             [useComputedClass(
                 "tableEventIndicatorsClass",
                 "o-dpck__table__event--",
-                props.indicators,
-            )]: props.indicators,
+                datepicker.value.indicators,
+            )]: datepicker.value.indicators,
         },
     ];
 }
@@ -452,15 +358,17 @@ const tableEventsClasses = computed(() => [
 <template>
     <div :class="tableRowClasses">
         <a
-            v-if="showWeekNumber"
+            v-if="datepicker.showWeekNumber"
             :class="tableCellClasses"
-            :style="{ cursor: weekNumberClickable ? 'pointer' : 'auto' }"
+            :style="{
+                cursor: datepicker.weekNumberClickable ? 'pointer' : 'auto',
+            }"
             @click.prevent="clickWeekNumber(getWeekNumber(week[6]))">
             <span>{{ getWeekNumber(week[6]) }}</span>
         </a>
         <template v-for="(weekDay, idx) in week" :key="idx">
             <a
-                v-if="!disabled && selectableDate(weekDay)"
+                v-if="!datepicker.disabled && isDateSelectable(weekDay, month)"
                 :ref="(el) => setDayRef(weekDay, el)"
                 :class="cellClasses(weekDay)"
                 role="button"

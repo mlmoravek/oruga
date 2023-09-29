@@ -256,53 +256,35 @@ export function isClient(): boolean {
  * Mobile detection
  * https://www.abeautifulsite.net/detecting-mobile-devices-with-javascript
  */
-export const isMobile = {
-    Android: function () {
-        return (
-            typeof window !== "undefined" &&
-            window.navigator.userAgent.match(/Android/i)
-        );
-    },
-    BlackBerry: function () {
-        return (
-            typeof window !== "undefined" &&
-            window.navigator.userAgent.match(/BlackBerry/i)
-        );
-    },
-    iOS: function () {
-        return (
-            typeof window !== "undefined" &&
-            window.navigator.userAgent.match(/iPhone|iPad|iPod/i)
-        );
-    },
-    Opera: function () {
-        return (
-            typeof window !== "undefined" &&
-            window.navigator.userAgent.match(/Opera Mini/i)
-        );
-    },
-    Windows: function () {
-        return (
-            typeof window !== "undefined" &&
-            window.navigator.userAgent.match(/IEMobile/i)
-        );
-    },
-    any: function () {
-        return (
-            isMobile.Android() ||
-            isMobile.BlackBerry() ||
-            isMobile.iOS() ||
-            isMobile.Opera() ||
-            isMobile.Windows()
-        );
-    },
+export const isMobileAgent = {
+    Android: (): boolean =>
+        typeof window !== "undefined" &&
+        !!window.navigator.userAgent.match(/Android/i),
+    BlackBerry: (): boolean =>
+        typeof window !== "undefined" &&
+        !!window.navigator.userAgent.match(/BlackBerry/i),
+    iOS: (): boolean =>
+        typeof window !== "undefined" &&
+        !!window.navigator.userAgent.match(/iPhone|iPad|iPod/i),
+    Opera: (): boolean =>
+        typeof window !== "undefined" &&
+        !!window.navigator.userAgent.match(/Opera Mini/i),
+    Windows: (): boolean =>
+        typeof window !== "undefined" &&
+        !!window.navigator.userAgent.match(/IEMobile/i),
+    any: (): boolean =>
+        isMobileAgent.Android() ||
+        isMobileAgent.BlackBerry() ||
+        isMobileAgent.iOS() ||
+        isMobileAgent.Opera() ||
+        isMobileAgent.Windows(),
 };
 
 // Microsoft Edge "pretends" to be all other major browsers, so we need to filter it out.
 // It doesn't use a very consistent string to represent its own name ("Edge", "Edg", "EdgA", etc.),
 // but it looks like WebKit never pretends to be Chrome, Edge does, and Chrome doesn't have the bug
 // that this flag is used to work around.
-export function isWebKit(): boolean {
+export function isWebKitAgent(): boolean {
     return (
         typeof window !== "undefined" &&
         window.navigator.userAgent.indexOf("AppleWebKit/") !== -1 &&

@@ -93,3 +93,60 @@ export function matchWithGroups(pattern: string, str: string): any {
             }, {})
     );
 }
+
+/** Return array of all days in the week that the startingDate is within */
+export function weekBuilder(startingDate, month, year): Date[] {
+    const thisMonth = new Date(year, month);
+
+    const thisWeek = [];
+
+    const dayOfWeek = new Date(year, month, startingDate).getDay();
+
+    const end =
+        dayOfWeek >= this.firstDayOfWeek
+            ? dayOfWeek - this.firstDayOfWeek
+            : 7 - this.firstDayOfWeek + dayOfWeek;
+
+    let daysAgo = 1;
+    for (let i = 0; i < end; i++) {
+        thisWeek.unshift(
+            new Date(
+                thisMonth.getFullYear(),
+                thisMonth.getMonth(),
+                startingDate - daysAgo,
+            ),
+        );
+        daysAgo++;
+    }
+
+    thisWeek.push(new Date(year, month, startingDate));
+
+    let daysForward = 1;
+    while (thisWeek.length < 7) {
+        thisWeek.push(new Date(year, month, startingDate + daysForward));
+        daysForward++;
+    }
+
+    return thisWeek;
+}
+
+export function firstWeekOffset(year, dow, doy): number {
+    // first-week day -- which january is always in the first week (4 for iso, 1 for other)
+    const fwd = 7 + dow - doy;
+    // first-week day local weekday -- which local weekday is fwd
+    const firstJanuary = new Date(year, 0, fwd);
+    const fwdlw = (7 + firstJanuary.getDay() - dow) % 7;
+    return -fwdlw + fwd - 1;
+}
+
+/** Return the number of days in a specific year */
+export function daysInYear(year): number {
+    return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0 ? 366 : 365;
+}
+
+/** Return the number of weeks in a specific year */
+export function weeksInYear(year, dow, doy): number {
+    const weekOffset = firstWeekOffset(year, dow, doy);
+    const weekOffsetNext = firstWeekOffset(year + 1, dow, doy);
+    return (daysInYear(year) - weekOffset + weekOffsetNext) / 7;
+}

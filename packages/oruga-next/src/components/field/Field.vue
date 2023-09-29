@@ -12,7 +12,7 @@ import {
     useMatchMedia,
 } from "@/composables";
 
-import { injectField, provideField } from "../field/useProvideField";
+import { injectField, provideField } from "../field/useFieldMixin";
 
 /**
  * Fields are used to add functionality to controls and to attach/group components and elements together
@@ -281,4 +281,3 @@ const innerFieldClasses = computed(() => [
         </p>
     </div>
 </template>
-./useProvideField

@@ -2,12 +2,9 @@ import type { App, Plugin } from "vue";
 
 import Datepicker from "./Datepicker.vue";
 
-import { registerComponent } from "../../utils/plugins";
+export type { DatepickerEvent, FocusedDate } from "./useDatepickerMixin";
 
-export type DatepickerEvent = {
-    date: Date;
-    type: string;
-};
+import { registerComponent } from "../../utils/plugins";
 
 export default {
     install(app: App) {

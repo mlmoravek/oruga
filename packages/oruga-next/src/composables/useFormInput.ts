@@ -1,4 +1,4 @@
-import { injectField } from "@/components/field/useProvideField";
+import { injectField } from "@/components/field/useFieldMixin";
 import { getOption } from "@/utils/config";
 import {
     getCurrentInstance,
