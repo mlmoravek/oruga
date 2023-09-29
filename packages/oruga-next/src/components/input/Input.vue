@@ -37,10 +37,7 @@ const props = defineProps({
     // add global shared props (will not be displayed in the docs)
     ...baseComponentProps,
     /** @model */
-    modelValue: {
-        type: [String, Number],
-        default: undefined,
-    },
+    modelValue: { type: [String, Number], default: undefined },
     /**
      * Input type, like native
      * @values Any native input type, and textarea
@@ -50,7 +47,7 @@ const props = defineProps({
         default: "text",
     },
     /**
-     * Vertical size of input, optional
+     * Size of the control, optional
      * @values small, medium, large
      */
     size: {

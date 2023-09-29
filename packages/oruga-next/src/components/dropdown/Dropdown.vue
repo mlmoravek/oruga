@@ -199,6 +199,7 @@ export default defineComponent({
     data() {
         return {
             selected: this.modelValue,
+            // musst be exposed
             isActive: false,
             isHoverable: false,
             bodyEl: undefined, // Used to append to body
@@ -421,6 +422,7 @@ export default defineComponent({
         /**
          * Toggle dropdown if it's not disabled.
          */
+        // musst be exposed
         toggle() {
             if (this.disabled) return;
 

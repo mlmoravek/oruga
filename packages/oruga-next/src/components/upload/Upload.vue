@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed, ref, watch, type PropType } from "vue";
 import { baseComponentProps } from "@/mixins/SharedProps";
 import { getOption } from "@/utils/config";
 import {
@@ -8,7 +9,6 @@ import {
     useFormInput,
 } from "@/composables";
 import { File } from "../../utils/ssr";
-import { computed, ref, watch, type PropType } from "vue";
 
 /**
  * Upload one or more files
@@ -27,7 +27,9 @@ const props = defineProps({
     ...baseComponentProps,
     /** @model */
     modelValue: {
-        type: Object as PropType<Object | Object[] | File | File[]>,
+        type: [Object, Array] as PropType<
+            object | typeof File | object[] | (typeof File)[]
+        >,
         default: undefined,
     },
     /**
@@ -91,10 +93,9 @@ const dragDropFocus = ref(false);
 watch(
     () => props.modelValue,
     (value) => {
-        if (!value || (Array.isArray(value) && value.length === 0)) {
+        if (!value || (Array.isArray(value) && value.length === 0))
             inputRef.value.value = null;
-        }
-        !isValid.value && !props.dragDrop && checkHtml5Validity();
+        if (!isValid.value && !props.dragDrop) checkHtml5Validity();
     },
 );
 

@@ -69,7 +69,7 @@ const props = defineProps({
         default: () => [],
     },
     /**
-     * Vertical size of input, optional
+     * Size of the control, optional
      * @values small, medium, large
      */
     size: {
