@@ -9,7 +9,7 @@ import {
     type PropType,
 } from "vue";
 
-import { injectField } from "./useProvideField";
+import { injectField } from "./useFieldMixin";
 
 export default defineComponent({
     name: "OFieldBody",

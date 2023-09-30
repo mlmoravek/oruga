@@ -18,7 +18,7 @@ import {
     useVModelBinding,
 } from "@/composables";
 
-import { injectField } from "../field/useProvideField";
+import { injectField } from "../field/useFieldMixin";
 import { useFormInput } from "@/composables/useFormInput";
 
 /**
@@ -406,4 +406,3 @@ const counterClasses = computed(() => [
         </small>
     </div>
 </template>
-../field/useFieldMixin

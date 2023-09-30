@@ -12,7 +12,7 @@ import {
     useFormInput,
 } from "@/composables";
 
-import { injectField } from "../field/useProvideField";
+import { injectField } from "../field/useFieldMixin";
 
 /**
  * Select an item in a dropdown list. Use with Field to access all functionalities
