@@ -1,11 +1,12 @@
 import { injectField } from "@/components/field/useFieldMixin";
 import { getOption } from "@/utils/config";
 import {
-    getCurrentInstance,
+    // getCurrentInstance,
     nextTick,
     ref,
     type ComputedRef,
     type Ref,
+    type ExtractPropTypes,
 } from "vue";
 
 // This should cover all types of HTML elements that have properties related to
@@ -23,7 +24,7 @@ const validatableFormElementTypes =
               HTMLTextAreaElement,
           ];
 
-type ValidatableFormElement = InstanceType<
+export type ValidatableFormElement = InstanceType<
     (typeof validatableFormElementTypes)[number]
 >;
 
@@ -34,10 +35,12 @@ function asValidatableFormElement(el: unknown): ValidatableFormElement | null {
 }
 
 /**
- * Outsourced form input functionality
+ * Form input handler functionalities
  */
-export function useFormInput(
+export function useInputHandler(
+    /** input ref element */
     inputRef: Ref<ValidatableFormElement> | ComputedRef<ValidatableFormElement>,
+    /** emitted input events */
     emits: {
         /** on input focus event */
         (e: "focus", value: Event): void;
@@ -46,16 +49,14 @@ export function useFormInput(
         /** on input invalid event */
         (e: "invalid", value: Event): void;
     },
+    /** validation configuration props */
+    props: Readonly<
+        ExtractPropTypes<{
+            useHtml5Validation?: boolean;
+            validationMessage?: string;
+        }>
+    >,
 ) {
-    // getting a hold of the internal instance in setup()
-    const vm = getCurrentInstance();
-    if (!vm)
-        throw new Error(
-            "useComputedClass must be called within a component setup function.",
-        );
-    // get component props
-    const props = vm.props;
-
     // inject parent field component if used inside one
     const { parentField } = injectField();
 
@@ -152,7 +153,7 @@ export function useFormInput(
             }
             if (isFirstInvalid) {
                 const fieldElement = parentField.value.$el;
-                const invalidHandler = getOption("reportInvalidInput");
+                const invalidHandler = getOption("invalidHandler");
                 if (invalidHandler instanceof Function) {
                     invalidHandler(validatable, fieldElement);
                 } else {

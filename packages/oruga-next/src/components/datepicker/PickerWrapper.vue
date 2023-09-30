@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, useAttrs, type PropType, ref, watch } from "vue";
+
 import ODropdown from "../dropdown/Dropdown.vue";
 import ODropdownItem from "../dropdown/DropdownItem.vue";
 import OInput from "../input/Input.vue";
@@ -7,9 +8,9 @@ import OInput from "../input/Input.vue";
 import type { TimepickerProps } from "../timepicker/useTimepickerMixin";
 import type { DatepickerProps } from "./useDatepickerMixin";
 
-import type { BindProp } from "@/types";
+import { useEventListener, useInputHandler } from "@/composables";
 import { isClient, isMobileAgent } from "@/utils/helpers";
-import { useEventListener, useFormInput } from "@/composables";
+import type { BindProp } from "@/types";
 
 /**
  * This is a internal used component.
@@ -62,17 +63,26 @@ const emits = defineEmits<{
     (e: "icon-right-click", evt: Event): void;
 }>();
 
-const dropdownRef = ref();
-const inputRef = ref();
-
-// use form input functionality
-const { checkHtml5Validity, onBlur, onFocus, onInvalid, isValid } =
-    useFormInput(inputRef, emits);
-
 /** the computed picker contains all chared props from the datepicker and the timepicker  */
 const picker = computed<DatepickerProps | TimepickerProps>(
     () => props.pickerProps,
 );
+
+const isMobileNative = computed(
+    () => picker.value.mobileNative && isMobileAgent.any(),
+);
+
+const dropdownRef = ref();
+const inputRef = ref();
+const nativeInputRef = ref();
+
+const elementRef = computed(() =>
+    isMobileNative.value ? nativeInputRef.value : inputRef.value,
+);
+
+// use form input functionality for native input
+const { checkHtml5Validity, onBlur, onFocus, onInvalid, isValid } =
+    useInputHandler(elementRef, emits, picker.value);
 
 /**
  * When v-model is changed:
@@ -84,13 +94,9 @@ watch(
     () => {
         // toggle picker if not stay open
         if (!props.stayOpen) togglePicker(false);
-        // check validation
-        if (!isValid.value) checkHtml5Validity();
+        // check validation if native
+        if (isMobileNative.value && !isValid.value) checkHtml5Validity();
     },
-);
-
-const isMobileNative = computed(
-    () => picker.value.mobileNative && isMobileAgent.any(),
 );
 
 const ariaRole = computed(() => (!picker.value.inline ? "dialog" : undefined));
@@ -176,8 +182,8 @@ const dropdownBind = computed(() => ({
             <template v-if="!picker.inline" #trigger>
                 <slot name="trigger">
                     <o-input
-                        v-bind="inputBind"
                         ref="inputRef"
+                        v-bind="inputBind"
                         autocomplete="off"
                         :model-value="formattedValue"
                         :placeholder="picker.placeholder"
@@ -192,10 +198,12 @@ const dropdownBind = computed(() => ({
                         :readonly="picker.readonly"
                         :use-html5-validation="false"
                         @click="onInputClick"
-                        @icon-right-click="$emit('icon-right-click', $event)"
                         @keyup.enter="togglePicker(true)"
                         @change="$emit('change', $event.target.value)"
-                        @focus="handleOnFocus" />
+                        @focus="handleOnFocus"
+                        @blur="onBlur"
+                        @icon-click="$emit('icon-click', $event)"
+                        @icon-right-click="$emit('icon-right-click', $event)" />
                 </slot>
             </template>
             <o-dropdown-item
@@ -211,11 +219,11 @@ const dropdownBind = computed(() => ({
         <!-- Native Picker -->
         <o-input
             v-else
-            ref="input"
+            ref="nativeInputRef"
             v-bind="inputBind"
             :type="nativeType"
             autocomplete="off"
-            :value="nativeValue"
+            :model-value="nativeValue"
             :min="nativeMin"
             :max="nativeMax"
             :step="nativeStep"
@@ -223,6 +231,8 @@ const dropdownBind = computed(() => ({
             :size="picker.size"
             :icon-pack="picker.iconPack"
             :icon="picker.icon"
+            :icon-right="picker.iconRight"
+            :icon-right-clickable="picker.iconRightClickable"
             :rounded="picker.rounded"
             :disabled="picker.disabled"
             :readonly="false"
@@ -230,6 +240,8 @@ const dropdownBind = computed(() => ({
             @change="$emit('native-change', $event.target.value)"
             @focus="onFocus"
             @blur="onBlur"
-            @invalid="onInvalid" />
+            @invalid="onInvalid"
+            @icon-click="$emit('icon-click', $event)"
+            @icon-right-click="$emit('icon-right-click', $event)" />
     </div>
 </template>

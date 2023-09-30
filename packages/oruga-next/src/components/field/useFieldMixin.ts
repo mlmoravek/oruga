@@ -7,6 +7,7 @@ type FieldData = {
     $el: Element;
     props: InstanceType<typeof Field>["$props"];
     hasInnerField: boolean;
+    hasMessage: boolean;
     fieldVariant: string;
     fieldMessage: string;
     setFocus: (value: boolean) => void;
@@ -57,6 +58,15 @@ export function injectField() {
     });
 
     /**
+     * Get the message prop from parent if it's a Field.
+     */
+    const statusMessage = computed(() =>
+        !parentField.value
+            ? parentField.value.fieldMessage || parentField.value.hasMessage
+            : "",
+    );
+
+    /**
      * Icon name based on the variant.
      */
     const statusVariantIcon = computed(() => {
@@ -73,5 +83,6 @@ export function injectField() {
         parentField,
         statusVariant,
         statusVariantIcon,
+        statusMessage,
     };
 }

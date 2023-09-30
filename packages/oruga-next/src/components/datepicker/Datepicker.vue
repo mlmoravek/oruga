@@ -31,7 +31,7 @@ import {
  */
 defineOptions({
     isOruga: true,
-    name: "OFiODatepickereld",
+    name: "ODatepickere",
     configField: "datepicker",
     inheritAttrs: false,
 });
@@ -69,18 +69,18 @@ const props = defineProps({
      */
     size: {
         type: String,
-        default: () => getOption("autocomplete.size"),
+        default: () => getOption("datepicker.size"),
     },
     /** Set default date to focus on */
-    focusedDate: { type: Date as PropType<Date>, default: undefined },
+    focusedDate: { type: Date, default: undefined },
     /** Events to display on picker */
     events: { type: Array as PropType<DatepickerEvent[]>, default: undefined },
     /** Event indicators for style class definiton */
     indicators: { type: String, default: "dots" },
     /** Min date to select */
-    minDate: { type: Date as PropType<Date>, default: undefined },
+    minDate: { type: Date, default: undefined },
     /** Max date to select */
-    maxDate: { type: Date as PropType<Date>, default: undefined },
+    maxDate: { type: Date, default: undefined },
     /** Enable date range selection */
     range: { type: Boolean, default: false },
     /** Makes input full width when inside a grouped or addon field */
@@ -123,12 +123,7 @@ const props = defineProps({
     /** Date creator function, default is `new Date()` */
     dateCreator: {
         type: Function as PropType<() => Date>,
-        default: () => {
-            const dateCreator = getOption("datepicker.dateCreator", undefined);
-            return typeof dateCreator === "function"
-                ? dateCreator()
-                : new Date();
-        },
+        default: () => getOption("datepicker.dateCreator", () => new Date()),
     },
     /** Define a list of dates which can be selected */
     selectableDates: {
@@ -230,6 +225,13 @@ const props = defineProps({
         type: Boolean,
         default: () => getOption("datepicker.appendToBody", false),
     },
+    /** Enable html 5 native validation */
+    useHtml5Validation: {
+        type: Boolean,
+        default: () => getOption("useHtml5Validation", true),
+    },
+    /** The message which is shown when a validation error occurs */
+    validationMessage: { type: String, default: undefined },
     /** A11y next button aria label */
     ariaNextLabel: { type: String, default: "Next Page" },
     /** A11y previous button aria label  */

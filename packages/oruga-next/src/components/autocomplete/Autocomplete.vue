@@ -20,7 +20,7 @@ import {
     useClassProps,
     useVModelBinding,
     useEventListener,
-    useFormInput,
+    useInputHandler,
     useDebounce,
 } from "@/composables";
 import {
@@ -186,9 +186,7 @@ const props = defineProps({
         type: Boolean,
         default: () => getOption("autocomplete.clearable", false),
     },
-    /**
-     * Icon name to be added on the clear button
-     */
+    /** Icon name to be added on the clear button */
     clearIcon: {
         type: String,
         default: () => getOption("autocomplete.clearIcon", "close-circle"),
@@ -239,9 +237,13 @@ const emits = defineEmits<{
     (e: "update:modelValue", value: string | number): void;
     /** on input change event */
     (e: "input", value: string | number): void;
+    /** selected element changed event */
     (e: "select", value: string | number, evt: Event): void;
+    /** header is selected */
     (e: "select-header", evt: Event): void;
+    /** footer is selected */
     (e: "select-footer", evt: Event): void;
+    /** the scroll list inside the dropdown reached it's end */
     (e: "infinite-scroll"): void;
     /** on input focus event */
     (e: "focus", evt: Event): void;
@@ -261,10 +263,15 @@ const footerRef = ref();
 const headerRef = ref();
 const itemRefs = ref([]);
 
-const vmodel = useVModelBinding<string | number>(props, emits);
+function setItemRef(el: HTMLElement): void {
+    if (el) itemRefs.value.push(el);
+}
 
-// use form input functionality
-const { checkHtml5Validity, onInvalid } = useFormInput(inputRef, emits);
+// use form input functionalities
+const { checkHtml5Validity, onInvalid, onFocus, onBlur, isFocused } =
+    useInputHandler(inputRef, emits, props);
+
+const vmodel = useVModelBinding<string | number>(props, emits);
 
 const isActive = ref(false);
 
@@ -273,7 +280,6 @@ const hoveredOption = ref(null);
 const headerHovered = ref(false);
 const footerHovered = ref(false);
 const isListInViewportVertically = ref(true);
-const hasFocus = ref(false);
 const width = ref(undefined);
 
 onBeforeUpdate(() => {
@@ -288,18 +294,34 @@ onBeforeUpdate(() => {
  */
 watch(
     () => vmodel.value,
-    (value) => {
+    (value, oldValue) => {
         // Check if selected is invalid
         const currentValue = getValue(selectedOption.value);
         if (currentValue && currentValue !== value) {
             setSelected(null, false);
         }
         // Close dropdown if input is clear or else open it
-        if (hasFocus.value && (!props.openOnFocus || value)) {
+        if (isFocused.value && (!props.openOnFocus || value)) {
             isActive.value = !!value;
         }
+        // emit input change event
+        if (currentValue && currentValue !== oldValue) debouncedInput();
     },
 );
+
+let debouncedInput = useDebounce(emitInput, props.debounce || 0);
+
+watch(
+    () => props.debounce,
+    (value) => {
+        debouncedInput = useDebounce(emitInput, value);
+    },
+);
+
+function emitInput(): void {
+    emits("input", vmodel.value);
+    checkHtml5Validity();
+}
 
 /**
  * Select first option if "keep-first
@@ -329,16 +351,12 @@ watch(
     },
 );
 
-if (isClient) {
-    // add outisde click event listener
-    useEventListener("click", clickedOutside);
-}
+// add outisde click event listener
+if (isClient) useEventListener("click", clickedOutside);
 
-/**
- * Close dropdown if clicked outside.
- */
+/** Close dropdown if clicked outside. */
 function clickedOutside(event: PointerEvent): void {
-    if (!hasFocus.value && whiteList.value.indexOf(event.target) < 0) {
+    if (!isFocused.value && whiteList.value.indexOf(event.target) < 0) {
         if (
             props.keepFirst &&
             hoveredOption.value &&
@@ -349,10 +367,6 @@ function clickedOutside(event: PointerEvent): void {
             isActive.value = false;
         }
     }
-}
-
-function setItemRef(el: HTMLElement): void {
-    if (el) itemRefs.value.push(el);
 }
 
 const computedData = computed<{ items: any; group?: any }[]>(() => {
@@ -440,9 +454,7 @@ function getValue(option): string {
     return label || "";
 }
 
-/**
- * Set which option is currently hovered.
- */
+/** Set which option is currently hovered. */
 function setHovered(option): void {
     if (option === undefined) return;
     hoveredOption.value = option;
@@ -470,12 +482,10 @@ function setSelected(option, closeDropdown = true, event = undefined): void {
         setHovered(null);
     }
     if (closeDropdown) nextTick(() => (isActive.value = false));
-    checkValidity();
+    checkHtml5Validity();
 }
 
-/**
- * Select first option
- */
+/** Select first option */
 function selectFirstOption(): void {
     nextTick(() => {
         const nonEmptyElements = computedData.value.filter(
@@ -490,36 +500,28 @@ function selectFirstOption(): void {
     });
 }
 
-function selectHeaderOrFoterByClick(event, origin): void {
-    checkIfHeaderOrFooterSelected(event, { origin: origin });
-}
-
-/**
- * Check if header or footer was selected.
- */
-function checkIfHeaderOrFooterSelected(
-    event,
-    triggerClick,
+/** Check if header or footer was selected. */
+function selectHeaderOrFoterByClick(
+    event: Event,
+    origin?: "header" | "footer",
     closeDropdown = true,
 ): void {
     if (
         props.selectableHeader &&
-        (headerHovered.value ||
-            (triggerClick && triggerClick.origin === "header"))
+        (headerHovered.value || origin === "header")
     ) {
         emits("select-header", event);
         headerHovered.value = false;
-        if (triggerClick) setHovered(null);
+        if (origin) setHovered(null);
         if (closeDropdown) isActive.value = false;
     }
     if (
         props.selectableFooter &&
-        (footerHovered.value ||
-            (triggerClick && triggerClick.origin === "footer"))
+        (footerHovered.value || origin === "footer")
     ) {
         emits("select-footer", event);
         footerHovered.value = false;
-        if (triggerClick) setHovered(null);
+        if (origin) setHovered(null);
         if (closeDropdown) isActive.value = false;
     }
 }
@@ -613,7 +615,7 @@ function onKeydown(event: KeyboardEvent): void {
         if (hoveredOption.value === null) {
             // header and footer uses headerHovered && footerHovered. If header or footer
             // was selected then fire event otherwise just return so a value isn't selected
-            checkIfHeaderOrFooterSelected(event, null, closeDropdown);
+            selectHeaderOrFoterByClick(event, null, closeDropdown);
             return;
         }
         setSelected(hoveredOption.value, closeDropdown, event);
@@ -624,7 +626,7 @@ function onKeydown(event: KeyboardEvent): void {
  * Focus listener.
  * If value is the same as selected, select all text.
  */
-function onFocus(event): void {
+function handleFocus(event): void {
     if (getValue(selectedOption.value) === vmodel.value) {
         inputRef.value.querySelector("input").select();
     }
@@ -635,40 +637,7 @@ function onFocus(event): void {
             selectFirstOption();
         }
     }
-    hasFocus.value = true;
-    emits("focus", event);
-}
-
-/** Blur listener */
-function onBlur(event): void {
-    hasFocus.value = false;
-    emits("blur", event);
-}
-
-let debouncedInput = useDebounce(emitInput, props.debounce);
-
-watch(
-    () => props.debounce,
-    (value) => {
-        debouncedInput = useDebounce(emitInput, value);
-    },
-);
-
-/** On Input listener */
-function onInput(): void {
-    const currentValue = getValue(selectedOption.value);
-    if (currentValue && currentValue === vmodel.value) return;
-    if (props.debounce) debouncedInput();
-    else emitInput();
-}
-
-function emitInput(): void {
-    emits("input", vmodel.value);
-    checkValidity();
-}
-
-function checkValidity(): void {
-    if (props.useHtml5Validation) nextTick(() => checkHtml5Validity());
+    onFocus(event);
 }
 
 // --- Icon Feature ---
@@ -687,9 +656,7 @@ function rightIconClick(event: Event): void {
     if (props.clearable) {
         vmodel.value = "";
         setSelected(null, false);
-        if (props.openOnFocus) {
-            inputRef.value.$el.focus();
-        }
+        if (props.openOnFocus) inputRef.value.$el.focus();
     } else emits("icon-right-click", event);
 }
 
@@ -760,10 +727,7 @@ onUnmounted(() => {
     }
 });
 
-/**
- * Check if the scroll list inside the dropdown
- * reached it's end.
- */
+/** Check if the scroll list inside the dropdown reached it's end. */
 function checkIfReachedTheEndOfScroll(): void {
     const list = dropdownRef.value;
     const footerHeight = footerRef.value ? footerRef.value.clientHeight : 0;
@@ -786,9 +750,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-    if (props.appendToBody) {
-        removeElement(bodyEl.value);
-    }
+    if (props.appendToBody) removeElement(bodyEl.value);
 });
 
 function updateAppendToBody(): void {
@@ -909,15 +871,14 @@ function itemOptionClasses(option) {
             :use-html5-validation="false"
             :aria-autocomplete="keepFirst ? 'both' : 'list'"
             :expanded="expanded"
-            @update:modelValue="onInput"
-            @focus="onFocus"
+            @focus="handleFocus"
             @blur="onBlur"
             @invalid="onInvalid"
             @keydown="onKeydown"
             @keydown.up.prevent="navigateItem(-1)"
             @keydown.down.prevent="navigateItem(1)"
-            @icon-right-click="rightIconClick"
-            @icon-click="(event) => $emit('icon-click', event)" />
+            @icon-click="(event) => $emit('icon-click', event)"
+            @icon-right-click="rightIconClick" />
 
         <transition :name="animation">
             <component

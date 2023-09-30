@@ -26,10 +26,7 @@ const props = defineProps({
     // add global shared props (will not be displayed in the docs)
     ...baseComponentProps,
     /** @model */
-    modelValue: {
-        type: [String, Number, Boolean, Array],
-        default: undefined,
-    },
+    modelValue: { type: Boolean, default: undefined },
     /**
      * Color of the control, optional
      * @values primary, info, success, warning, danger, and any other custom color
@@ -87,10 +84,7 @@ const props = defineProps({
 
 const emits = defineEmits<{
     /** modelValue prop two-way binding */
-    (
-        e: "update:modelValue",
-        value: [string, number, boolean, Array<any>],
-    ): void;
+    (e: "update:modelValue", value: boolean): void;
     /** indeterminate prop two-way binding */
     (e: "update:indeterminate", value: boolean): void;
 }>();

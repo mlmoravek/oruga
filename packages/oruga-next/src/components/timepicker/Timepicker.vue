@@ -88,13 +88,8 @@ const props = defineProps({
     },
     /** time creator function, default is `new Date()` */
     timeCreator: {
-        type: Function,
-        default: () => {
-            const timeCreator = getOption("timepicker.timeCreator", undefined);
-            return typeof timeCreator === "function"
-                ? timeCreator()
-                : new Date();
-        },
+        type: Function as PropType<() => Date>,
+        default: () => getOption("timepicker.timeCreator", () => new Date()),
     },
     /** Define a list of times which can not be selected */
     unselectableTimes: {
@@ -149,6 +144,13 @@ const props = defineProps({
         type: Boolean,
         default: () => getOption("datepicker.appendToBody", false),
     },
+    /** Enable html 5 native validation */
+    useHtml5Validation: {
+        type: Boolean,
+        default: () => getOption("useHtml5Validation", true),
+    },
+    /** The message which is shown when a validation error occurs */
+    validationMessage: { type: String, default: undefined },
     // add class props (will not be displayed in the docs)
     ...useClassProps([
         "rootClass",
@@ -173,7 +175,7 @@ const props = defineProps({
 
 const emits = defineEmits<{
     /** modelValue prop two-way binding */
-    (e: "update:modelValue", value: string | number): void;
+    (e: "update:modelValue", value: Date): void;
     /** on active state change event */
     (e: "active-change", value: boolean): void;
     /** on input focus event */

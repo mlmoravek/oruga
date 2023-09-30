@@ -87,9 +87,9 @@ const props = defineProps({
 
 const emits = defineEmits<{
     /** variant prop two-way binding */
-    (e: "update:variant", value: boolean): void;
+    (e: "update:variant", value: string): void;
     /** message prop two-way binding */
-    (e: "update:message", value: boolean): void;
+    (e: "update:message", value: string): void;
 }>();
 
 const { isMobile } = useMatchMedia();
@@ -127,7 +127,7 @@ const hasLabel = computed(() => props.label || !!slots.label);
 
 const hasMessage = computed(
     () =>
-        (!parentField?.value?.hasInnerField && fieldMessage.value) ||
+        !!(!parentField?.value?.hasInnerField && fieldMessage.value) ||
         !!slots.message,
 );
 
@@ -157,6 +157,7 @@ provideField({
     $el: rootRef.value,
     props,
     hasInnerField: hasInnerField.value,
+    hasMessage: hasMessage.value,
     fieldVariant: fieldVariant.value,
     fieldMessage: fieldMessage.value,
     setFocus: (value: boolean): void => {

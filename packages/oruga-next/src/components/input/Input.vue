@@ -16,10 +16,10 @@ import {
     useComputedClass,
     useClassProps,
     useVModelBinding,
+    useInputHandler,
 } from "@/composables";
 
 import { injectField } from "../field/useFieldMixin";
-import { useFormInput } from "@/composables/useFormInput";
 
 /**
  * Get user Input. Use with Field to access all functionalities
@@ -170,26 +170,30 @@ const elementRef = computed<HTMLInputElement>(() =>
     props.type === "textarea" ? textareaRef.value : inputRef.value,
 );
 
-// use form input functionality
-const { checkHtml5Validity, onBlur, onFocus, onInvalid, setFocus, isFocused } =
-    useFormInput(elementRef, emits);
+// use form input functionalities
+const {
+    checkHtml5Validity,
+    onBlur,
+    onFocus,
+    onInvalid,
+    setFocus,
+    isValid,
+    isFocused,
+} = useInputHandler(elementRef, emits, props);
 
 // inject parent field component if used inside one
 const { parentField, statusVariant, statusVariantIcon } = injectField();
 
 const vmodel = useVModelBinding<string | number>(props, emits);
 
-/**
- * Get value length
- */
-const valueLength = computed(() => {
-    if (typeof vmodel.value === "string") {
-        return vmodel.value.length;
-    } else if (typeof vmodel.value === "number") {
-        return vmodel.value.toString().length;
-    }
-    return 0;
-});
+/** Get value length */
+const valueLength = computed(() =>
+    typeof vmodel.value === "string"
+        ? vmodel.value.length
+        : typeof vmodel.value === "number"
+        ? vmodel.value.toString().length
+        : 0,
+);
 
 onMounted(() => {
     /**
@@ -203,7 +207,7 @@ onMounted(() => {
         (value) => {
             if (parentField?.value) parentField.value.setFilled(!!value);
             if (props.autosize) resize();
-            checkHtml5Validity();
+            if (!isValid.value) checkHtml5Validity();
         },
         { immediate: true },
     );
@@ -221,9 +225,7 @@ function resize(): void {
     });
 }
 
-/**
- * Computed inline styles for autoresize
- */
+/** Computed inline styles for autoresize */
 const computedStyles = computed(
     (): StyleValue =>
         props.autosize
@@ -283,9 +285,7 @@ function rightIconClick(event: Event): void {
 const isPasswordVisible = ref(false);
 const inputType = ref(props.type);
 
-/**
- * Current password-reveal icon name.
- */
+/** Current password-reveal icon name. */
 const passwordVisibleIcon = computed(() =>
     !isPasswordVisible.value ? "eye" : "eye-off",
 );
@@ -350,19 +350,35 @@ const iconRightClasses = computed(() => [
 const counterClasses = computed(() => [
     useComputedClass("counterClass", "o-input__counter"),
 ]);
+
+// --- Expose Public Functioanlity ---
+
+// TODO: check if $el has to be exposed or is by default
+// defineExpose({
+//     $el: elementRef.value,
+// });
 </script>
 
 <template>
     <div :class="rootClasses">
+        <o-icon
+            v-if="icon"
+            :class="iconLeftClasses"
+            :clickable="iconClickable"
+            :icon="icon"
+            :pack="iconPack"
+            :size="size"
+            @click="iconClick('icon-click', $event)" />
+
         <input
             v-if="type !== 'textarea'"
             v-bind="$attrs"
             ref="inputRef"
             v-model="vmodel"
-            :class="inputClasses"
             :type="inputType"
-            :autocomplete="autocomplete"
+            :class="inputClasses"
             :maxlength="maxlength"
+            :autocomplete="autocomplete"
             @blur="onBlur"
             @focus="onFocus"
             @invalid="onInvalid" />
@@ -378,15 +394,6 @@ const counterClasses = computed(() => [
             @blur="onBlur"
             @focus="onFocus"
             @invalid="onInvalid" />
-
-        <o-icon
-            v-if="icon"
-            :class="iconLeftClasses"
-            :clickable="iconClickable"
-            :icon="icon"
-            :pack="iconPack"
-            :size="size"
-            @click="iconClick('icon-click', $event)" />
 
         <o-icon
             v-if="hasIconRight"
@@ -406,3 +413,4 @@ const counterClasses = computed(() => [
         </small>
     </div>
 </template>
+@/composables/useInputHandler

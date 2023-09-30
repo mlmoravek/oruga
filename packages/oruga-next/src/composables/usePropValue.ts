@@ -7,8 +7,11 @@ import { computed, type ExtractPropTypes, type WritableComputedRef } from "vue";
  * @returns WritableComputedRef<T>
  */
 export const useVModelBinding = <T>(
-    props: Readonly<ExtractPropTypes<any>>,
-    emit: (event: any, ...args: any[]) => void,
+    props: Readonly<ExtractPropTypes<{ modelValue: T }>>,
+    emit: {
+        /** on input focus event */
+        (e: "update:modelValue", value: T): void;
+    },
 ): WritableComputedRef<T> => usePropBinding("modelValue", props, emit);
 
 /**
@@ -21,7 +24,7 @@ export const useVModelBinding = <T>(
 export const usePropBinding = <T>(
     name: string,
     props: Readonly<ExtractPropTypes<any>>,
-    emit: (event: any, ...args: any[]) => void,
+    emit: (event: any, value: T) => void,
 ): WritableComputedRef<T> =>
     computed<T>({
         get() {

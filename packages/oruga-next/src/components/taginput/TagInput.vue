@@ -10,7 +10,7 @@ import {
     useComputedClass,
     useClassProps,
     useVModelBinding,
-    useFormInput,
+    useInputHandler,
 } from "@/composables";
 import { getValueByPath } from "../../utils/helpers";
 
@@ -30,17 +30,17 @@ const props = defineProps({
     // add global shared props (will not be displayed in the docs)
     ...baseComponentProps,
     /** @model */
-    modelValue: {
-        type: Array,
-        default: () => [],
-    },
+    modelValue: { type: Array, default: () => [] },
     /** Items data */
-    data: {
-        type: Array,
-        default: () => [],
-    },
+    data: { type: Array, default: () => [] },
+    /** Property of the object (if data is array of objects) to use as display text */
+    field: { type: String, default: "value" },
+    /** Property of the object (if <code>data</code> is array of objects) to use as display text of group */
+    groupField: { type: String, default: undefined },
+    /** Property of the object (if <code>data</code> is array of objects) to use as key to get items array of each group, optional */
+    groupOptions: { type: String, default: undefined },
     /**
-     * Vertical size of input, optional
+     * Vertical size of the input control, optional
      * @values small, medium, large
      */
     size: {
@@ -63,14 +63,7 @@ const props = defineProps({
     hasCounter: {
         type: Boolean,
         default: () => getOption("taginput.hasCounter", true),
-    },
-    /** Property of the object (if data is array of objects) to use as display text */
-    field: { type: String, default: "value" },
-    /** Property of the object (if <code>data</code> is array of objects) to use as display text of group */
-    groupField: { type: String, default: undefined },
-    /** Property of the object (if <code>data</code> is array of objects) to use as key to get items array of each group, optional */
-    groupOptions: { type: String, default: undefined },
-    /**  Opens a dropdown with choices when the input field is focused */
+    } /**  Opens a dropdown with choices when the input field is focused */,
     openOnFocus: { type: Boolean, default: false },
     /** Input will be disabled */
     disabled: { type: Boolean, default: false },
@@ -114,10 +107,7 @@ const props = defineProps({
         default: (item: any) => item,
     },
     /** Makes the autocomplete component check if list reached scroll end and emit infinite-scroll event */
-    checkInfiniteScroll: {
-        type: Boolean,
-        default: false,
-    },
+    checkInfiniteScroll: { type: Boolean, default: false },
     /** Add close/delete button to the item */
     closable: {
         type: Boolean,
@@ -178,12 +168,15 @@ const props = defineProps({
 
 const emits = defineEmits<{
     /** modelValue prop two-way binding */
-    (e: "update:modelValue", value: string | number): void;
+    (e: "update:modelValue", value: any[]): void;
     /** on input change event */
-    (e: "input", value: string | number): void;
+    (e: "input", value: any): void;
+    /** the scroll list inside the dropdown reached it's end */
     (e: "infinite-scroll"): void;
-    (e: "add", value: string | number): void;
-    (e: "remove", value: string | number): void;
+    /** new item got added */
+    (e: "add", value: any): void;
+    /** item got removed */
+    (e: "remove", value: any): void;
     /** on input focus event */
     (e: "focus", evt: Event): void;
     /** on input blur event */
@@ -201,7 +194,11 @@ const autocompleteRef = ref();
 const items = useVModelBinding<any[]>(props, emits);
 
 // use form input functionality
-const { onFocus, onBlur, onInvalid } = useFormInput(autocompleteRef, emits);
+const { onFocus, onBlur, onInvalid } = useInputHandler(
+    autocompleteRef,
+    emits,
+    props,
+);
 
 const newItem = ref("");
 const isComposing = ref(false);
@@ -209,9 +206,7 @@ const isComposing = ref(false);
 const valueLength = computed(() => newItem.value.trim().length);
 const itemsLength = computed(() => items.value.length);
 
-/**
- * When modelValue is changed set internal value.
- */
+/** When modelValue is changed set internal value. */
 watch(
     () => props.modelValue,
     (value) => {
@@ -219,9 +214,7 @@ watch(
     },
 );
 
-/**
- * Show the input field if a maxitems hasn't been set or reached.
- */
+/** Show the input field if a maxitems hasn't been set or reached. */
 const hasInput = computed(
     () => props.maxitems == null || itemsLength.value < props.maxitems,
 );
@@ -229,6 +222,7 @@ const hasInput = computed(
 watch(
     () => hasInput.value,
     () => {
+        // blur if input is empty
         if (!hasInput.value) onBlur();
     },
 );
@@ -279,7 +273,7 @@ function addItem(item?: string): void {
     // after autocomplete events
     requestAnimationFrame(() => {
         newItem.value = "";
-        emits("input", "");
+        emits("input", newItem.value);
     });
 }
 
@@ -288,13 +282,13 @@ function getNormalizedItemText(item: any): string {
     return `${item}`;
 }
 
-function customOnBlur(event): void {
+function customOnBlur(event: Event): void {
     // Add item on-blur if not select only
     if (!props.allowAutocomplete) addItem();
     onBlur(event);
 }
 
-function onSelect(option): void {
+function onSelect(option?: string): void {
     if (!option) return;
     addItem(option);
     nextTick(() => (newItem.value = ""));
@@ -313,7 +307,7 @@ function removeLastItem(): void {
     if (itemsLength.value > 0) removeItem(itemsLength.value - 1);
 }
 
-function keydown(event: KeyboardEvent): void {
+function onKeydown(event: KeyboardEvent): void {
     if (
         props.removeOnKeys.indexOf(event.key) !== -1 &&
         !newItem.value?.length
@@ -434,11 +428,12 @@ const counterClasses = computed(() => [
                 @focus="onFocus"
                 @blur="customOnBlur"
                 @invalid="onInvalid"
-                @keydown="keydown"
+                @keydown="onKeydown"
                 @compositionstart="isComposing = true"
                 @compositionend="isComposing = false"
-                @select="onSelect"
+                @select="onSelect($event as string)"
                 @infinite-scroll="$emit('infinite-scroll')"
+                @icon-click="$emit('icon-click', $event)"
                 @icon-right-click="$emit('icon-right-click', $event)">
                 <template v-if="$slots.header" #header>
                     <slot name="header" />
