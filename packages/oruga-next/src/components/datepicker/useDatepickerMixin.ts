@@ -15,7 +15,6 @@ export type FocusedDate = {
     year: number;
 };
 
-/** Inject parent field component if used inside one. **/
 export function useDatepickerMixins(props: DatepickerProps) {
     /**
      * Check that selected date is within earliest/latest params and
@@ -75,6 +74,14 @@ export function useDatepickerMixins(props: DatepickerProps) {
 
     const isTypeMonth = computed(() => props.type === "month");
 
+    const localeOptions = computed(
+        () =>
+            new Intl.DateTimeFormat(this.locale, {
+                year: "numeric",
+                month: "numeric",
+            }).resolvedOptions() as Intl.DateTimeFormatOptions,
+    );
+
     /** DateTime Format */
     const dtf = computed(
         () => new Intl.DateTimeFormat(props.locale /*, { timeZone: 'UTC' }*/),
@@ -84,11 +91,20 @@ export function useDatepickerMixins(props: DatepickerProps) {
     const dtfMonth = computed(
         () =>
             new Intl.DateTimeFormat(props.locale, {
-                year: "numeric",
-                month: "numeric",
+                year: localeOptions.value.year || "numeric",
+                month: localeOptions.value.month || "2-digit",
                 // timeZone: 'UTC'
             }),
     );
+
+    const sampleTime = computed(() => {
+        const d = props.dateCreator();
+        d.setHours(10);
+        d.setSeconds(0);
+        d.setMinutes(0);
+        d.setMilliseconds(0);
+        return d;
+    });
 
     /** Format date into string */
     const defaultDateFormatter = (date: Date | Date[]): string => {
@@ -109,12 +125,13 @@ export function useDatepickerMixins(props: DatepickerProps) {
 
     /** Parse a string into a date */
     const defaultDateParser = (date: string): Date => {
+        if (!date) return null;
         if (
             dtf.value.formatToParts &&
             typeof dtf.value.formatToParts === "function"
         ) {
             const formatRegex = (isTypeMonth.value ? dtfMonth.value : dtf.value)
-                .formatToParts(new Date(2000, 11, 25))
+                .formatToParts(sampleTime.value)
                 .map((part) => {
                     if (part.type === "literal") return part.value;
                     return `((?!=<${part.type}>)\\d+)`;
@@ -144,23 +161,20 @@ export function useDatepickerMixins(props: DatepickerProps) {
         }
         // Fallback if formatToParts is not supported or if we were not able to parse a valid date
         if (!isTypeMonth.value) return new Date(Date.parse(date));
-        if (date) {
-            const s = date.split("/");
-            const year = s[0].length === 4 ? s[0] : s[1];
-            const month = s[0].length === 2 ? s[0] : s[1];
-            if (year && month) {
-                return new Date(
-                    parseInt(year, 10),
-                    parseInt(month, 10) - 1,
-                    1,
-                    0,
-                    0,
-                    0,
-                    0,
-                );
-            }
+        const s = date.split("/");
+        const year = s[0].length === 4 ? s[0] : s[1];
+        const month = s[0].length === 2 ? s[0] : s[1];
+        if (year && month) {
+            return new Date(
+                parseInt(year, 10),
+                parseInt(month, 10) - 1,
+                1,
+                0,
+                0,
+                0,
+                0,
+            );
         }
-        return null;
     };
 
     return { isDateSelectable, defaultDateParser, defaultDateFormatter };

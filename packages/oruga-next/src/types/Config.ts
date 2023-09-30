@@ -39,3 +39,14 @@ export type OrugaOptions = {
               [key: string]: FieldDefinition | boolean;
           };
 };
+
+/** Vue native type which a v-bind prop must have */
+export type BindProp = (
+    | string
+    | {
+          [x: string]: string;
+      }
+    | {
+          [x: string]: boolean;
+      }
+)[];

@@ -1,12 +1,9 @@
 <script setup lang="ts">
-import { computed, ref, useAttrs, watch, type PropType } from "vue";
+import { computed, ref, watch, type PropType } from "vue";
 
-import ODropdown from "../dropdown/Dropdown.vue";
-import ODropdownItem from "../dropdown/DropdownItem.vue";
-import OInput from "../input/Input.vue";
 import OSelect from "../select/Select.vue";
 import OIcon from "../icon/Icon.vue";
-
+import OPickerWrapper from "./PickerWrapper.vue";
 import ODatepickerTable from "./DatepickerTable.vue";
 import ODatepickerMonth from "./DatepickerMonth.vue";
 
@@ -16,14 +13,10 @@ import {
     useComputedClass,
     useClassProps,
     useVModelBinding,
-    useEventListener,
-    useFormInput,
     useMatchMedia,
 } from "@/composables";
 
 import { getMonthNames, getWeekdayNames } from "./datepickerUtils";
-import { isClient } from "@/utils/ssr";
-import { isMobileAgent } from "@/utils/helpers";
 
 import {
     useDatepickerMixins,
@@ -92,7 +85,7 @@ const props = defineProps({
     range: { type: Boolean, default: false },
     /** Makes input full width when inside a grouped or addon field */
     expanded: { type: Boolean, default: false },
-    /** Makes the element rounded */
+    /** Makes the input rounded */
     rounded: { type: Boolean, default: false },
     /** Display datepicker inline */
     inline: { type: Boolean, default: false },
@@ -104,13 +97,13 @@ const props = defineProps({
     multiple: { type: Boolean, default: false },
     /** Same as native disabled */
     disabled: { type: Boolean, default: true },
-    closeOnClick: {
-        type: Boolean,
-        default: () => getOption("datepicker.closeOnClick", true),
-    },
     openOnFocus: {
         type: Boolean,
         default: () => getOption("datepicker.openOnFocus", true),
+    },
+    closeOnClick: {
+        type: Boolean,
+        default: () => getOption("datepicker.closeOnClick", true),
     },
     /** Date format locale */
     locale: {
@@ -185,6 +178,7 @@ const props = defineProps({
         type: Array as PropType<number[]>,
         default: () => getOption("datepicker.yearsRange", [-100, 10]),
     },
+    /** Dropdown trapFocus */
     trapFocus: {
         type: Boolean,
         default: () => getOption("datepicker.trapFocus", true),
@@ -212,7 +206,7 @@ const props = defineProps({
     /** Icon name to be shown */
     icon: {
         type: String,
-        default: () => getOption("input.icon", undefined),
+        default: () => getOption("datepicker.icon", undefined),
     },
     /** Icon name to be added on the right side */
     iconRight: {
@@ -230,11 +224,6 @@ const props = defineProps({
     iconNext: {
         type: String,
         default: () => getOption("datepicker.iconNext", "chevron-right"),
-    },
-    /** Enable html 5 native validation */
-    useHtml5Validation: {
-        type: Boolean,
-        default: () => getOption("useHtml5Validation", true),
     },
     /** Append autocomplete content to body */
     appendToBody: {
@@ -325,7 +314,7 @@ const emits = defineEmits<{
     /** on year change event */
     (e: "change-year", value: number): void;
     /** on active state change event */
-    (e: "active-change", value: Date): void;
+    (e: "active-change", value: boolean): void;
     /** on input focus event */
     (e: "focus", evt: Event): void;
     /** on input blur event */
@@ -338,22 +327,12 @@ const emits = defineEmits<{
     (e: "icon-right-click", evt: Event): void;
 }>();
 
-const dropdownRef = ref();
-const inputRef = ref();
-
 // use form input functionality
-const { checkHtml5Validity, onBlur, onFocus, onInvalid } = useFormInput(
-    inputRef,
-    emits,
-);
+// const { checkHtml5Validity, isValid } = useFormInput(inputRef, emits);
 
 const { defaultDateFormatter, defaultDateParser } = useDatepickerMixins(props);
 
 const { isMobile } = useMatchMedia();
-
-const isMobileNative = computed(
-    () => props.mobileNative && isMobileAgent.any(),
-);
 
 const vmodel = useVModelBinding<Date | Date[]>(props, emits);
 
@@ -369,8 +348,6 @@ const formattedValue = computed(() => {
 });
 
 const isTypeMonth = computed(() => props.type === "month");
-
-const ariaRole = computed(() => (!props.inline ? "dialog" : undefined));
 
 /**
  * When v-model is changed:
@@ -403,10 +380,6 @@ watch(
                 };
             }
         }
-        // toggle picker if not multiple
-        if (!props.multiple) togglePicker(false);
-        // check validation
-        checkHtml5Validity();
     },
 );
 
@@ -455,19 +428,6 @@ watch(
     () => focusedDateData.value.year,
     (value) => emits("change-year", value),
 );
-
-if (isClient) useEventListener("keyup", onKeyPress);
-
-/**
- * Keypress event that is bound to the document.
- */
-function onKeyPress(event: KeyboardEvent): void {
-    if (
-        dropdownRef.value?.isActive &&
-        (event.key === "Escape" || event.key === "Esc")
-    )
-        togglePicker(false);
-}
 
 const computedMonthNames = computed(() =>
     Array.isArray(props.monthNames)
@@ -648,9 +608,8 @@ function onChange(value: string): void {
 }
 
 /** Parse date from string */
-function onChangeNativePicker(event: Event): void {
-    const date = (event.target as HTMLInputElement).value;
-    const s = date ? date.split("-") : [];
+function onChangeNativePicker(value: string): void {
+    const s = value ? value.split("-") : [];
     if (s.length === 3) {
         const year = parseInt(s[0], 10);
         const month = parseInt(s[1]) - 1;
@@ -661,62 +620,15 @@ function onChangeNativePicker(event: Event): void {
     }
 }
 
-/** Toggle datepicker */
-function togglePicker(active): void {
-    if (isMobileNative.value) {
-        const input = inputRef.value;
-        input.focus();
-        input.click();
-    } else if (dropdownRef.value) {
-        const isActive =
-            typeof active === "boolean" ? active : !dropdownRef.value.isActive;
-        if (isActive) {
-            dropdownRef.value.isActive = isActive;
-        } else if (props.closeOnClick) {
-            dropdownRef.value.isActive = isActive;
-        }
-    }
-}
-
-/** Call default onFocus method and show datepicker */
-function handleOnFocus(event: Event): void {
-    onFocus(event);
-    if (props.openOnFocus) togglePicker(true);
-}
-
-/** Avoid dropdown toggle when is already visible */
-function onInputClick(event): void {
-    if (dropdownRef.value.isActive) event.stopPropagation();
-}
-
-/**
- * Emit 'blur' event on dropdown is not active (closed)
- */
-function onActiveChange(value): void {
-    if (!value) onBlur();
-    else if (value) onFocus();
-    emits("active-change", value);
-}
-
 // --- Computed Component Classes ---
-
-const attrs = useAttrs();
-const inputBind = computed(() => ({
-    ...attrs,
-    ...props.inputClasses,
-}));
-
-const dropdownBind = computed(() => ({
-    "root-class": useComputedClass(
-        "dropdownClasses.rootClass",
-        "o-dpck__dropdown",
-    ),
-    ...props.dropdownClasses,
-}));
 
 const selectListBind = computed(() => ({
     ...props.selectListClasses,
 }));
+
+const rootClass = computed(() =>
+    useComputedClass("dropdownClasses.rootClass", "o-dpck__dropdown"),
+);
 
 const rootClasses = computed(() => [
     useComputedClass("rootClass", "o-dpck"),
@@ -765,165 +677,114 @@ const footerClasses = computed(() => [
 </script>
 
 <template>
-    <div :class="rootClasses">
-        <o-dropdown
-            v-if="!isMobileNative || inline"
-            ref="dropdownRef"
-            v-bind="dropdownBind"
-            :position="position"
-            :disabled="disabled"
-            :inline="inline"
-            :mobile-modal="mobileModal"
-            :trap-focus="trapFocus"
-            :aria-role="ariaRole"
-            :aria-modal="!inline"
-            :trigger-tabindex="-1"
-            :append-to-body="appendToBody"
-            append-to-body-copy-parent
-            @active-change="onActiveChange">
-            <template v-if="!inline" #trigger>
-                <slot name="trigger">
-                    <o-input
-                        v-bind="inputBind"
-                        ref="inputRef"
-                        autocomplete="off"
-                        :model-value="formattedValue"
-                        :placeholder="placeholder"
-                        :size="size"
-                        :icon="icon"
-                        :icon-right="iconRight"
-                        :icon-right-clickable="iconRightClickable"
-                        :icon-pack="iconPack"
-                        :expanded="expanded"
-                        :rounded="rounded"
-                        :disabled="disabled"
-                        :readonly="readonly"
-                        :use-html5-validation="false"
-                        @click="onInputClick"
-                        @icon-right-click="$emit('icon-right-click', $event)"
-                        @keyup.enter="togglePicker(true)"
-                        @change="onChange($event.target.value)"
-                        @focus="handleOnFocus" />
-                </slot>
-            </template>
-            <o-dropdown-item
-                override
-                tag="div"
-                :item-class="boxClasses"
-                :disabled="disabled"
-                :clickable="false">
-                <header :class="headerClasses">
-                    <slot name="header">
-                        <div :class="headerButtonsClasses">
-                            <a
-                                v-if="!disabled"
-                                :class="prevBtnClasses"
-                                role="button"
-                                href="#"
-                                :disabled="!showPrev"
-                                :aria-label="ariaPreviousLabel"
-                                @click.prevent="prev"
-                                @keydown.enter.prevent="prev"
-                                @keydown.space.prevent="prev">
-                                <o-icon
-                                    :icon="iconPrev"
-                                    :pack="iconPack"
-                                    both
-                                    clickable />
-                            </a>
-                            <a
-                                v-if="!disabled"
-                                :class="nextBtnClasses"
-                                role="button"
-                                href="#"
-                                :disabled="!showNext"
-                                :aria-label="ariaNextLabel"
-                                @click.prevent="next"
-                                @keydown.enter.prevent="next"
-                                @keydown.space.prevent="next">
-                                <o-icon
-                                    :icon="iconNext"
-                                    :pack="iconPack"
-                                    both
-                                    clickable />
-                            </a>
-                            <div :class="listsClasses">
-                                <o-select
-                                    v-if="!isTypeMonth"
-                                    v-model="focusedDateData.month"
-                                    :disabled="disabled"
-                                    :size="size"
-                                    v-bind="selectListBind">
-                                    <option
-                                        v-for="month in listOfMonths"
-                                        :key="month.name"
-                                        :value="month.index"
-                                        :disabled="month.disabled">
-                                        {{ month.name }}
-                                    </option>
-                                </o-select>
-                                <o-select
-                                    v-model="focusedDateData.year"
-                                    :disabled="disabled"
-                                    :size="size"
-                                    v-bind="selectListBind">
-                                    <option
-                                        v-for="year in listOfYears"
-                                        :key="year"
-                                        :value="year">
-                                        {{ year }}
-                                    </option>
-                                </o-select>
-                            </div>
-                        </div>
-                    </slot>
-                </header>
-                <slot name="body">
-                    <o-datepicker-month
-                        v-if="isTypeMonth"
-                        v-model="vmodel"
-                        v-model:focused-date="focusedDateData"
-                        :month-names="computedMonthNames"
-                        :datepicker-props="props"
-                        @range-start="(date) => $emit('range-start', date)"
-                        @range-end="(date) => $emit('range-end', date)" />
-                    <o-datepicker-table
-                        v-else
-                        v-model="vmodel"
-                        v-model:focused-date="focusedDateData"
-                        :day-names="computedDayNames"
-                        :month-names="computedMonthNames"
-                        :datepicker-props="props"
-                        @range-start="(date) => $emit('range-start', date)"
-                        @range-end="(date) => $emit('range-end', date)" />
-                </slot>
-                <footer v-if="$slots.footer" :class="footerClasses">
-                    <slot name="footer" />
-                </footer>
-            </o-dropdown-item>
-        </o-dropdown>
-
-        <!-- Native Picker -->
-        <o-input
-            v-else
-            ref="input"
-            v-bind="$attrs"
-            :type="!isTypeMonth ? 'date' : 'month'"
-            autocomplete="off"
-            :value="formatNative(vmodel)"
-            :max="formatNative(maxDate)"
-            :min="formatNative(minDate)"
-            :placeholder="placeholder"
-            :size="size"
-            :icon="icon"
-            :icon-pack="iconPack"
-            :rounded="rounded"
-            :disabled="disabled"
-            :readonly="false"
-            :use-html5-validation="false"
-            @change="onChangeNativePicker"
-            @focus="onFocus"
-            @blur="onBlur"
-            @invalid="onInvalid" />
-    </div>
+    <OPickerWrapper
+        v-bind="$attrs"
+        :value="vmodel"
+        :picker-props="props"
+        :formatted-value="formattedValue"
+        :native-type="!isTypeMonth ? 'date' : 'month'"
+        :native-value="formatNative(vmodel)"
+        :native-max="formatNative(maxDate)"
+        :native-min="formatNative(minDate)"
+        :stay-open="multiple"
+        :rootclass="rootClass"
+        :root-classes="rootClasses"
+        :box-classes="boxClasses"
+        @change="onChange"
+        @native-change="onChangeNativePicker"
+        @active-change="$emit('active-change', $event)"
+        @focus="$emit('focus', $event)"
+        @blur="$emit('blur', $event)"
+        @invalid="$emit('invalid', $event)"
+        @icon-click="$emit('icon-click', $event)"
+        @icon-right-click="$emit('icon-right-click', $event)">
+        <header :class="headerClasses">
+            <slot name="header">
+                <div :class="headerButtonsClasses">
+                    <a
+                        v-if="!disabled"
+                        :class="prevBtnClasses"
+                        role="button"
+                        href="#"
+                        :disabled="!showPrev"
+                        :aria-label="ariaPreviousLabel"
+                        @click.prevent="prev"
+                        @keydown.enter.prevent="prev"
+                        @keydown.space.prevent="prev">
+                        <o-icon
+                            :icon="iconPrev"
+                            :pack="iconPack"
+                            both
+                            clickable />
+                    </a>
+                    <a
+                        v-if="!disabled"
+                        :class="nextBtnClasses"
+                        role="button"
+                        href="#"
+                        :disabled="!showNext"
+                        :aria-label="ariaNextLabel"
+                        @click.prevent="next"
+                        @keydown.enter.prevent="next"
+                        @keydown.space.prevent="next">
+                        <o-icon
+                            :icon="iconNext"
+                            :pack="iconPack"
+                            both
+                            clickable />
+                    </a>
+                    <div :class="listsClasses">
+                        <o-select
+                            v-if="!isTypeMonth"
+                            v-model="focusedDateData.month"
+                            :disabled="disabled"
+                            :size="size"
+                            v-bind="selectListBind">
+                            <option
+                                v-for="month in listOfMonths"
+                                :key="month.name"
+                                :value="month.index"
+                                :disabled="month.disabled">
+                                {{ month.name }}
+                            </option>
+                        </o-select>
+                        <o-select
+                            v-model="focusedDateData.year"
+                            :disabled="disabled"
+                            :size="size"
+                            v-bind="selectListBind">
+                            <option
+                                v-for="year in listOfYears"
+                                :key="year"
+                                :value="year">
+                                {{ year }}
+                            </option>
+                        </o-select>
+                    </div>
+                </div>
+            </slot>
+        </header>
+        <slot name="body">
+            <o-datepicker-month
+                v-if="isTypeMonth"
+                v-model="vmodel"
+                v-model:focused-date="focusedDateData"
+                :month-names="computedMonthNames"
+                :datepicker-props="props"
+                @range-start="(date) => $emit('range-start', date)"
+                @range-end="(date) => $emit('range-end', date)" />
+            <o-datepicker-table
+                v-else
+                v-model="vmodel"
+                v-model:focused-date="focusedDateData"
+                :day-names="computedDayNames"
+                :month-names="computedMonthNames"
+                :datepicker-props="props"
+                @range-start="(date) => $emit('range-start', date)"
+                @range-end="(date) => $emit('range-end', date)" />
+        </slot>
+        <footer v-if="$slots.footer" :class="footerClasses">
+            <slot name="footer" />
+        </footer>
+    </OPickerWrapper>
 </template>
