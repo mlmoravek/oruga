@@ -10,7 +10,7 @@ import {
 
 import OIcon from "../icon/Icon.vue";
 
-import { baseComponentProps } from "@/mixins/SharedProps";
+import { baseComponentProps } from "@/utils/SharedProps";
 import { getOption } from "@/utils/config";
 import {
     useComputedClass,
@@ -19,7 +19,7 @@ import {
     useInputHandler,
 } from "@/composables";
 
-import { injectField } from "../field/useFieldMixin";
+import { injectField } from "../field/useFieldShare";
 
 /**
  * Get user Input. Use with Field to access all functionalities
@@ -37,15 +37,12 @@ const props = defineProps({
     // add global shared props (will not be displayed in the docs)
     ...baseComponentProps,
     /** @model */
-    modelValue: { type: [String, Number], default: undefined },
+    modelValue: { type: [String, Number], default: "" },
     /**
      * Input type, like native
      * @values Any native input type, and textarea
      */
-    type: {
-        type: String,
-        default: "text",
-    },
+    type: { type: String, default: "text" },
     /**
      * Size of the control, optional
      * @values small, medium, large
@@ -62,10 +59,14 @@ const props = defineProps({
         type: String,
         default: () => getOption("input.variant"),
     },
+    /** Input placeholder */
+    placeholder: { type: String, default: undefined },
     /** Makes input full width when inside a grouped or addon field */
     expanded: { type: Boolean, default: false },
     /** Makes the element rounded */
     rounded: { type: Boolean, default: false },
+    /** Same as native disabled */
+    disabled: { type: Boolean, default: false },
     /** Adds the reveal password functionality */
     passwordReveal: { type: Boolean, default: false },
     /** Same as native maxlength, plus character counter */
@@ -106,9 +107,7 @@ const props = defineProps({
         type: Boolean,
         default: () => getOption("input.clearable", false),
     },
-    /**
-     * Icon name to be added on the clear button
-     */
+    /** Icon name to be added on the clear button */
     clearIcon: {
         type: String,
         default: () => getOption("input.clearIcon", "close-circle"),
@@ -147,18 +146,36 @@ const props = defineProps({
 });
 
 const emits = defineEmits<{
-    /** modelValue prop two-way binding */
+    /**
+     * modelValue prop two-way binding
+     * @param value {string | number} updated modelValue prop
+     */
     (e: "update:modelValue", value: string | number): void;
-    /** on input focus event */
-    (e: "focus", evt: Event): void;
-    /** on input blur event */
-    (e: "blur", evt: Event): void;
-    /** on input invalid event */
-    (e: "invalid", evt: Event): void;
-    /** on icon click event */
-    (e: "icon-click", evt: Event): void;
-    /** on icon right click event */
-    (e: "icon-right-click", evt: Event): void;
+    /**
+     * on input focus event
+     * @param event {Event} native event
+     */
+    (e: "focus", event: Event): void;
+    /**
+     * on input blur event
+     * @param event {Event} native event
+     */
+    (e: "blur", event: Event): void;
+    /**
+     * on input invalid event
+     * @param event {Event} native event
+     */
+    (e: "invalid", event: Event): void;
+    /**
+     * on icon click event
+     * @param event {Event} native event
+     */
+    (e: "icon-click", event: Event): void;
+    /**
+     * on icon right click event
+     * @param event {Event} native event
+     */
+    (e: "icon-right-click", event: Event): void;
 }>();
 
 // --- Validation Feature ---
@@ -207,7 +224,7 @@ onMounted(() => {
         (value) => {
             if (parentField?.value) parentField.value.setFilled(!!value);
             if (props.autosize) resize();
-            if (!isValid.value) checkHtml5Validity();
+            if (!isValid.value) nextTick(() => checkHtml5Validity());
         },
         { immediate: true },
     );
@@ -270,20 +287,21 @@ function iconClick(emit, event): void {
 }
 
 function rightIconClick(event: Event): void {
-    if (props.passwordReveal) {
-        togglePasswordVisibility();
-    } else if (props.clearable) {
-        vmodel.value = "";
-    }
-    if (props.iconRightClickable) {
-        iconClick("icon-right-click", event);
-    }
+    if (props.passwordReveal) togglePasswordVisibility();
+    else if (props.clearable) vmodel.value = "";
+    if (props.iconRightClickable) iconClick("icon-right-click", event);
 }
 
 // --- Password Visability Feature ---
 
 const isPasswordVisible = ref(false);
 const inputType = ref(props.type);
+
+// update inputType on type prop change
+watch(
+    () => props.type,
+    (type) => (inputType.value = type),
+);
 
 /** Current password-reveal icon name. */
 const passwordVisibleIcon = computed(() =>
@@ -351,16 +369,19 @@ const counterClasses = computed(() => [
     useComputedClass("counterClass", "o-input__counter"),
 ]);
 
-// --- Expose Public Functioanlity ---
+// --- Expose Public Functionalities ---
 
-// TODO: check if $el has to be exposed or is by default
-// defineExpose({
-//     $el: elementRef.value,
-// });
+const rootRef = ref();
+defineExpose({
+    // expose the html root element of this component
+    $el: computed(() => rootRef.value),
+    // expose the input element
+    $inputRef: computed(() => elementRef.value),
+});
 </script>
 
 <template>
-    <div :class="rootClasses">
+    <div ref="rootRef" :class="rootClasses">
         <o-icon
             v-if="icon"
             :class="iconLeftClasses"
@@ -379,6 +400,8 @@ const counterClasses = computed(() => [
             :class="inputClasses"
             :maxlength="maxlength"
             :autocomplete="autocomplete"
+            :placeholder="placeholder"
+            :disabled="disabled"
             @blur="onBlur"
             @focus="onFocus"
             @invalid="onInvalid" />
@@ -391,6 +414,8 @@ const counterClasses = computed(() => [
             :class="inputClasses"
             :maxlength="maxlength"
             :style="computedStyles"
+            :placeholder="placeholder"
+            :disabled="disabled"
             @blur="onBlur"
             @focus="onFocus"
             @invalid="onInvalid" />
@@ -413,4 +438,3 @@ const counterClasses = computed(() => [
         </small>
     </div>
 </template>
-@/composables/useInputHandler

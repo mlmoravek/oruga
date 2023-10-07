@@ -7,13 +7,15 @@ import {
     onMounted,
     onBeforeUpdate,
     onUnmounted,
+    useAttrs,
+    toRaw,
     type PropType,
     type Component,
 } from "vue";
 
 import OInput from "../input/Input.vue";
 
-import { baseComponentProps } from "@/mixins/SharedProps";
+import { baseComponentProps } from "@/utils/SharedProps";
 import { getOption } from "@/utils/config";
 import {
     useComputedClass,
@@ -30,6 +32,7 @@ import {
     toCssDimension,
 } from "@/utils/helpers";
 import { isClient } from "@/utils/ssr";
+import type { BindProp } from "@/types";
 
 /**
  * Extended input that provide suggestions while the user types
@@ -47,12 +50,9 @@ const props = defineProps({
     // add global shared props (will not be displayed in the docs)
     ...baseComponentProps,
     /** @model */
-    modelValue: { type: [String, Number], required: true },
+    modelValue: { type: [String, Number], default: "" },
     /** Input type */
-    type: {
-        type: String,
-        default: "text",
-    },
+    type: { type: String, default: "text" },
     /** Menu tag name */
     menuTag: {
         type: [String, Object, Function] as PropType<string | Component>,
@@ -64,10 +64,7 @@ const props = defineProps({
         default: () => getOption("autocomplete.itemTag", "div"),
     },
     /** Options / suggestions */
-    data: {
-        type: Array,
-        default: () => [],
-    },
+    data: { type: Array, default: () => [] },
     /**
      * Size of the control, optional
      * @values small, medium, large
@@ -86,21 +83,35 @@ const props = defineProps({
     },
     /** Property of the object (if data is array of objects) to use as display text, and to keep track of selected option */
     field: { type: String, default: "value" },
-    /** Property of the object (if <code>data</code> is array of objects) to use as display text of group */
+    /** Property of the object (if `data` is array of objects) to use as display text of group */
     groupField: { type: String, default: undefined },
-    /** Property of the object (if <code>data</code> is array of objects) to use as key to get items array of each group, optional */
+    /** Property of the object (if `data` is array of objects) to use as key to get items array of each group, optional */
     groupOptions: { type: String, default: undefined },
     /** Function to format an option to a string for display in the input (as alternative to field prop) */
-    customFormatter: {
+    formatter: {
         type: Function as PropType<(value: string | number) => string | number>,
         default: undefined,
     },
+    /** Input placeholder */
+    placeholder: { type: String, default: undefined },
     /** Makes input full width when inside a grouped or addon field */
     expanded: { type: Boolean, default: false },
     /** Makes the element rounded */
     rounded: { type: Boolean, default: false },
-    /** Makes the component check if list reached scroll end and emit infinite-scroll event. */
-    checkInfiniteScroll: { type: Boolean, default: false },
+    /** Same as native input disabled */
+    disabled: { type: Boolean, default: false },
+    /** Same as native maxlength, plus character counter */
+    maxlength: { type: Number, default: undefined },
+    /** Makes the component check if list reached scroll start or end and emit scroll events. */
+    checkScroll: {
+        type: Boolean,
+        default: () => getOption("autocomplete.checkScroll", false),
+    },
+    /** Number of milliseconds to delay before to emit input event */
+    debounce: {
+        type: Number,
+        default: () => getOption("autocomplete.debounce", 400),
+    },
     /** The first option will always be pre-selected (easier to just hit enter or tab) */
     keepFirst: {
         type: Boolean,
@@ -123,6 +134,11 @@ const props = defineProps({
     },
     /** Max height of dropdown content */
     maxHeight: { type: [String, Number], default: undefined },
+    /** Array of keys (https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values) which will add a tag when typing (default tab and enter) */
+    confirmKeys: {
+        type: Array,
+        default: () => ["Tab", "Enter"],
+    },
     /**
      * Position of dropdown
      * @values auto, top, bottom
@@ -139,19 +155,7 @@ const props = defineProps({
         type: String,
         default: () => getOption("autocomplete.animation", "fade"),
     },
-    /** Number of milliseconds to delay before to emit input event */
-    debounce: {
-        type: Number,
-        default: () => getOption("autocomplete.debounce", 400),
-    },
-    /** Array of keys (https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values) which will add a tag when typing (default tab and enter) */
-    confirmKeys: {
-        type: Array,
-        default: () => ["Tab", "Enter"],
-    },
-    /** Same as native maxlength, plus character counter */
-    maxlength: { type: Number, default: undefined },
-    /** Trigger the select event for the first pre-selected option when clicking outside and <code>keep-first</code> is enabled */
+    /** Trigger the select event for the first pre-selected option when clicking outside and `keep-first` is enabled */
     selectOnClickOutside: { type: Boolean, default: false },
     /** Allows the header in the autocomplete to be selectable */
     selectableHeader: { type: Boolean, default: false },
@@ -233,34 +237,66 @@ const props = defineProps({
 });
 
 const emits = defineEmits<{
-    /** modelValue prop two-way binding */
+    /**
+     * modelValue prop two-way binding
+     * @param value {string | number} updated modelValue prop
+     */
     (e: "update:modelValue", value: string | number): void;
-    /** on input change event */
+    /**
+     * on input change event
+     * @param value {string | number} input value
+     */
     (e: "input", value: string | number): void;
-    /** selected element changed event */
+    /**
+     * selected element changed event
+     * @param value {string | number} selected value
+     */
     (e: "select", value: string | number, evt: Event): void;
-    /** header is selected */
-    (e: "select-header", evt: Event): void;
-    /** footer is selected */
-    (e: "select-footer", evt: Event): void;
+    /**
+     * header is selected
+     * @param event {Event} native event
+     */
+    (e: "select-header", event: Event): void;
+    /**
+     * footer is selected
+     * @param event {Event} native event
+     */
+    (e: "select-footer", event: Event): void;
+    /**
+     * on input focus event
+     * @param event {Event} native event
+     */
+    (e: "focus", event: Event): void;
+    /**
+     * on input blur event
+     * @param event {Event} native event
+     */
+    (e: "blur", event: Event): void;
+    /**
+     * on input invalid event
+     * @param event {Event} native event
+     */
+    (e: "invalid", event: Event): void;
+    /**
+     * on icon click event
+     * @param event {Event} native event
+     */
+    (e: "icon-click", event: Event): void;
+    /**
+     * on icon right click event
+     * @param event {Event} native event
+     */
+    (e: "icon-right-click", event: Event): void;
+    /** the scroll list inside the dropdown reached the start */
+    (e: "scroll-start"): void;
     /** the scroll list inside the dropdown reached it's end */
-    (e: "infinite-scroll"): void;
-    /** on input focus event */
-    (e: "focus", evt: Event): void;
-    /** on input blur event */
-    (e: "blur", evt: Event): void;
-    /** on input invalid event */
-    (e: "invalid", evt: Event): void;
-    /** on icon click event */
-    (e: "icon-click", evt: Event): void;
-    /** on icon right click event */
-    (e: "icon-right-click", evt: Event): void;
+    (e: "scroll-end"): void;
 }>();
 
-const inputRef = ref();
-const dropdownRef = ref();
-const footerRef = ref();
-const headerRef = ref();
+const inputRef = ref<InstanceType<typeof OInput>>();
+const dropdownRef = ref<HTMLElement>();
+const footerRef = ref<HTMLElement>();
+const headerRef = ref<HTMLElement>();
 const itemRefs = ref([]);
 
 function setItemRef(el: HTMLElement): void {
@@ -271,7 +307,9 @@ function setItemRef(el: HTMLElement): void {
 const { checkHtml5Validity, onInvalid, onFocus, onBlur, isFocused } =
     useInputHandler(inputRef, emits, props);
 
-const vmodel = useVModelBinding<string | number>(props, emits);
+const vmodel = useVModelBinding<string | number>(props, emits, {
+    passive: true,
+});
 
 const isActive = ref(false);
 
@@ -294,7 +332,7 @@ onBeforeUpdate(() => {
  */
 watch(
     () => vmodel.value,
-    (value, oldValue) => {
+    (value) => {
         // Check if selected is invalid
         const currentValue = getValue(selectedOption.value);
         if (currentValue && currentValue !== value) {
@@ -304,39 +342,18 @@ watch(
         if (isFocused.value && (!props.openOnFocus || value)) {
             isActive.value = !!value;
         }
-        // emit input change event
-        if (currentValue && currentValue !== oldValue) debouncedInput();
     },
 );
 
-let debouncedInput = useDebounce(emitInput, props.debounce || 0);
-
-watch(
-    () => props.debounce,
-    (value) => {
-        debouncedInput = useDebounce(emitInput, value);
-    },
-);
-
-function emitInput(): void {
-    emits("input", vmodel.value);
-    checkHtml5Validity();
-}
-
-/**
- * Select first option if "keep-first
- */
+/** Select first option if "keep-first" */
 watch(
     () => props.data,
     () => {
         // Keep first option always pre-selected
         if (props.keepFirst) {
             nextTick(() => {
-                if (isActive.value) {
-                    selectFirstOption();
-                } else {
-                    setHovered(null);
-                }
+                if (isActive.value) selectFirstOption();
+                else setHovered(null);
             });
         } else if (hoveredOption.value) {
             // reset hovered if list doesn't contain it
@@ -356,7 +373,11 @@ if (isClient) useEventListener("click", clickedOutside);
 
 /** Close dropdown if clicked outside. */
 function clickedOutside(event: PointerEvent): void {
-    if (!isFocused.value && whiteList.value.indexOf(event.target) < 0) {
+    if (
+        !isFocused.value &&
+        Array.isArray(whiteList.value) &&
+        whiteList.value.indexOf(event.target as HTMLElement) < 0
+    ) {
         if (
             props.keepFirst &&
             hoveredOption.value &&
@@ -371,27 +392,17 @@ function clickedOutside(event: PointerEvent): void {
 
 const computedData = computed<{ items: any; group?: any }[]>(() => {
     if (props.groupField) {
-        if (props.groupOptions) {
-            const newData = [];
-            props.data.forEach((option) => {
+        if (props.groupOptions)
+            return props.data.map((option) => {
                 const group = getValueByPath(option, props.groupField);
                 const items = getValueByPath(option, props.groupOptions);
-                newData.push({ group, items });
+                return { group, items };
             });
-            return newData;
-        } else {
-            const tmp = {};
-            props.data.forEach((option) => {
-                const group = getValueByPath(option, props.groupField);
-                if (!tmp[group]) tmp[group] = [];
-                tmp[group].push(option);
-            });
-            const newData = [];
-            Object.keys(props.data).forEach((group) => {
-                newData.push({ group, items: props.data[group] });
-            });
-            return newData;
-        }
+        else
+            return Object.keys(props.data).map((group) => ({
+                group,
+                items: props.data[group],
+            }));
     }
     return [{ items: props.data }];
 });
@@ -409,8 +420,8 @@ const isEmpty = computed(() =>
  * Add input, dropdown and all children.
  */
 const whiteList = computed(() => {
-    const whiteList = [];
-    whiteList.push(inputRef.value.querySelector("input"));
+    const whiteList: Element[] = [];
+    whiteList.push(inputRef.value.$el.querySelector("input"));
     whiteList.push(dropdownRef.value);
     // Add all children from dropdown
     if (dropdownRef.value !== undefined) {
@@ -447,8 +458,8 @@ function getValue(option): string {
             : option;
 
     const label =
-        typeof props.customFormatter === "function"
-            ? props.customFormatter(property)
+        typeof props.formatter === "function"
+            ? props.formatter(property)
             : property;
 
     return label || "";
@@ -467,14 +478,10 @@ function setHovered(option): void {
 function setSelected(option, closeDropdown = true, event = undefined): void {
     if (option === undefined) return;
     selectedOption.value = option;
-    /**
-     * @property {Object} selected selected option
-     * @property {Event} event native event
-     */
     emits("select", selectedOption.value, event);
     if (selectedOption.value !== null) {
         if (props.clearOnSelect) {
-            const input = inputRef.value.querySelector("input");
+            const input = inputRef.value.$el.querySelector("input");
             input.value = "";
         } else {
             vmodel.value = getValue(selectedOption.value);
@@ -526,6 +533,8 @@ function selectHeaderOrFoterByClick(
     }
 }
 
+// --- Event Handler ---
+
 /**
  * Arrows keys listener.
  * If dropdown is active, set hovered option, or else just open.
@@ -548,7 +557,7 @@ function navigateItem(direction: 1 | -1): void {
     let index;
     if (headerHovered.value) index = 0 + direction;
     else if (footerHovered.value) index = data.length - 1 + direction;
-    else index = data.indexOf(hoveredOption.value) + direction;
+    else index = data.indexOf(toRaw(hoveredOption.value)) + direction;
 
     // check if index overflow
     index = index > data.length - 1 ? data.length - 1 : index;
@@ -591,9 +600,9 @@ function navigateItem(direction: 1 | -1): void {
             element.offsetTop -
             dropdownMenu.clientHeight +
             element.clientHeight;
-        // trigger infinte-scroll
-        emits("infinite-scroll");
     }
+    // trigger scroll
+    if (props.checkScroll) checkDropdownScroll();
 }
 
 /**
@@ -626,18 +635,38 @@ function onKeydown(event: KeyboardEvent): void {
  * Focus listener.
  * If value is the same as selected, select all text.
  */
-function handleFocus(event): void {
+function handleFocus(event: Event): void {
     if (getValue(selectedOption.value) === vmodel.value) {
-        inputRef.value.querySelector("input").select();
+        inputRef.value.$el.querySelector("input").select();
     }
     if (props.openOnFocus) {
         isActive.value = true;
-        if (props.keepFirst) {
+        if (props.keepFirst)
             // If open on focus, update the hovered
             selectFirstOption();
-        }
     }
     onFocus(event);
+}
+
+/** emit input change event */
+function onInput(value: string | number): void {
+    const currentValue = getValue(selectedOption.value);
+    if (currentValue && currentValue === vmodel.value) return;
+    debouncedInput(value);
+}
+
+let debouncedInput = useDebounce(emitInput, props.debounce || 0);
+
+watch(
+    () => props.debounce,
+    (value) => {
+        debouncedInput = useDebounce(emitInput, value);
+    },
+);
+
+function emitInput(value: string | number): void {
+    emits("input", value);
+    checkHtml5Validity();
 }
 
 // --- Icon Feature ---
@@ -673,13 +702,11 @@ if (isClient && props.menuPosition === "auto") {
  */
 watch(isActive, (active) => {
     if (props.menuPosition === "auto") {
-        if (active) {
-            calcDropdownInViewportVertical();
-        } else {
+        if (active) calcDropdownInViewportVertical();
+        else
             window.requestAnimationFrame(() =>
                 calcDropdownInViewportVertical(),
             );
-        }
     }
 });
 
@@ -710,37 +737,47 @@ function calcDropdownInViewportVertical(): void {
 // --- InfitiveScroll Feature ---
 
 onMounted(() => {
-    if (props.checkInfiniteScroll && dropdownRef.value) {
-        dropdownRef.value.addEventListener(
-            "scroll",
-            checkIfReachedTheEndOfScroll,
-        );
+    if (props.checkScroll && dropdownRef.value) {
+        dropdownRef.value.addEventListener("scroll", checkDropdownScroll);
     }
 });
 
 onUnmounted(() => {
-    if (props.checkInfiniteScroll && dropdownRef.value) {
-        dropdownRef.value.removeEventListener(
-            "scroll",
-            checkIfReachedTheEndOfScroll,
-        );
+    if (props.checkScroll && dropdownRef.value) {
+        dropdownRef.value.removeEventListener("scroll", checkDropdownScroll);
     }
 });
 
-/** Check if the scroll list inside the dropdown reached it's end. */
-function checkIfReachedTheEndOfScroll(): void {
-    const list = dropdownRef.value;
-    const footerHeight = footerRef.value ? footerRef.value.clientHeight : 0;
-    if (
-        list.clientHeight !== list.scrollHeight &&
-        list.scrollTop + list.clientHeight + footerHeight >= list.scrollHeight
-    )
-        emits("infinite-scroll");
+/** Check if the scroll list inside the dropdown reached the top or it's end. */
+function checkDropdownScroll(): void {
+    const dropdown = dropdownRef.value;
+    const trashhold = 15;
+    const headerHeight = headerRef.value ? headerRef.value.clientHeight : 0;
+    const footerHeight = footerRef.value
+        ? footerRef.value.clientHeight + trashhold
+        : 0;
+    if (dropdown.clientHeight !== dropdown.scrollHeight) {
+        console.log(
+            dropdown.scrollTop,
+            dropdown.clientHeight,
+            footerHeight,
+            ">=",
+            dropdown.scrollHeight,
+        );
+        if (
+            dropdown.scrollTop + dropdown.clientHeight + footerHeight >=
+            dropdown.scrollHeight
+        )
+            emits("scroll-end");
+        else if (dropdown.scrollTop <= headerHeight) {
+            emits("scroll-start");
+        }
+    }
 }
 
 // --- AppendToBody Feature ---
 
-const bodyEl = ref(undefined); // Used to append to body
+const bodyEl = ref(); // Used to append to body
 
 onMounted(() => {
     if (props.appendToBody) {
@@ -792,6 +829,12 @@ function updateAppendToBody(): void {
 
 // --- Computed Component Classes ---
 
+const attrs = useAttrs();
+const inputBind = computed(() => ({
+    ...attrs,
+    ...props.inputClasses,
+}));
+
 const rootClasses = computed(() => [
     useComputedClass("rootClass", "o-acp"),
     {
@@ -842,23 +885,33 @@ const itemFooterClasses = computed(() => [
     },
 ]);
 
-function itemOptionClasses(option) {
+function itemOptionClasses(option): BindProp {
     return [
         ...itemClasses.value,
         {
             [useComputedClass("itemHoverClass", "o-acp__item--hover")]:
-                option === hoveredOption.value,
+                toRaw(option) === toRaw(hoveredOption.value),
         },
     ];
 }
+
+// --- Expose Public Functionalities ---
+
+const rootRef = ref();
+defineExpose({
+    // expose the html root element of this component
+    $el: computed(() => rootRef.value),
+    // expose the input element
+    $inputRef: computed(() => inputRef.value.$inputRef),
+});
 </script>
 
 <template>
-    <div :class="rootClasses">
+    <div ref="rootRef" :class="rootClasses">
         <o-input
             ref="inputRef"
             v-model="vmodel"
-            :v-bind="{ ...$attrs, ...inputClasses }"
+            v-bind="inputBind"
             :type="type"
             :size="size"
             :rounded="rounded"
@@ -866,11 +919,14 @@ function itemOptionClasses(option) {
             :icon-right="computedIconRight"
             :icon-right-clickable="computedIconRightClickable"
             :icon-pack="iconPack"
+            :placeholder="placeholder"
             :maxlength="maxlength"
             :autocomplete="autocomplete"
             :use-html5-validation="false"
             :aria-autocomplete="keepFirst ? 'both' : 'list'"
             :expanded="expanded"
+            :disabled="disabled"
+            @update:model-value="onInput"
             @focus="handleFocus"
             @blur="onBlur"
             @invalid="onInvalid"
@@ -928,6 +984,7 @@ function itemOptionClasses(option) {
                         <slot
                             v-if="$slots.default"
                             :option="option"
+                            :value="getValue(option)"
                             :index="index" />
                         <span v-else>
                             {{ getValue(option) }}

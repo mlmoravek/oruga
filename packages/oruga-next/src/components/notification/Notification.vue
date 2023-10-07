@@ -3,7 +3,7 @@ import MessageMixin from "../../mixins/MessageMixin";
 import BaseComponentMixin from "../../mixins/BaseComponentMixin";
 import { getValueByPath } from "../../utils/helpers";
 import { getOptions } from "../../utils/config";
-import { defineComponent, type Component } from "vue";
+import { defineComponent, type Component, type PropType } from "vue";
 
 /**
  * Bold notification blocks to alert your users of something
@@ -45,7 +45,7 @@ export default defineComponent({
             default: "fade",
         },
         /** Component to be injected, used to open a component modal programmatically. Close modal within the component by emitting a 'close' event — this.$emit('close') */
-        component: Object as () => Component,
+        component: [Object, Function] as PropType<Component>,
         /** Props to be binded to the injected component */
         props: Object,
         /** Events to be binded to the injected component */

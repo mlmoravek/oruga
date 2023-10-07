@@ -241,7 +241,7 @@ As alternative Oruga allows to customize each components providing and overridin
 ```js
 import { useOruga } from '@oruga-ui/oruga-next';
 
-const oruga  = useOruga();
+const oruga = useOruga();
 
 const config = oruga.config.getOptions();
 

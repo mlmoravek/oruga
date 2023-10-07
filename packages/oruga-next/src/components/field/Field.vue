@@ -3,16 +3,11 @@ import { computed, ref, useSlots, watch } from "vue";
 
 import OFieldBody from "./FieldBody.vue";
 
-import { baseComponentProps } from "@/mixins/SharedProps";
+import { baseComponentProps } from "@/utils/SharedProps";
 import { getOption } from "@/utils/config";
-import {
-    useComputedClass,
-    useClassProps,
-    usePropBinding,
-    useMatchMedia,
-} from "@/composables";
+import { useComputedClass, useClassProps, useMatchMedia } from "@/composables";
 
-import { injectField, provideField } from "../field/useFieldMixin";
+import { injectField, provideField } from "../field/useFieldShare";
 
 /**
  * Fields are used to add functionality to controls and to attach/group components and elements together
@@ -85,20 +80,21 @@ const props = defineProps({
     ]),
 });
 
-const emits = defineEmits<{
-    /** variant prop two-way binding */
-    (e: "update:variant", value: string): void;
-    /** message prop two-way binding */
-    (e: "update:message", value: string): void;
-}>();
-
 const { isMobile } = useMatchMedia();
 
 /** Set internal variant when prop change. */
-const fieldVariant = usePropBinding<string>("variant", props, emits);
+const fieldVariant = ref(props.variant);
+watch(
+    () => props.variant,
+    (v) => (fieldVariant.value = v),
+);
 
 /** Set internal message when prop change. */
-const fieldMessage = usePropBinding<string>("message", props, emits);
+const fieldMessage = ref(props.message);
+watch(
+    () => props.message,
+    (v) => (fieldMessage.value = v),
+);
 
 /** this can be set from outside to update the focus state. */
 const isFocused = ref(false);
@@ -136,6 +132,8 @@ const hasInnerField = computed(
 );
 
 function hasAddons(): boolean {
+    if (!props.addons || props.horizontal) return false;
+
     let renderedNode = 0;
     // [Vue warn]: Slot "default" invoked outside of the render function: this will not track dependencies used in the slot. Invoke the slot function inside the render function instead.
     const slot = slots.default();
@@ -149,30 +147,39 @@ function hasAddons(): boolean {
     return renderedNode > 1 && props.addons && !props.horizontal;
 }
 
+// --- Field Dependency Injection Feature ---
+
 const rootRef = ref();
 
-// Provide field component data via dependency injection.
+function setFocus(value: boolean): void {
+    isFocused.value = value;
+}
+function setFilled(value: boolean): void {
+    isFilled.value = value;
+}
+function setVariant(value: string): void {
+    fieldVariant.value = value;
+}
+function setMessage(value: string): void {
+    fieldMessage.value = value;
+}
+
 // Provided data is a computed ref to enjure reactivity.
-provideField({
+const provideData = computed(() => ({
     $el: rootRef.value,
     props,
     hasInnerField: hasInnerField.value,
     hasMessage: hasMessage.value,
     fieldVariant: fieldVariant.value,
     fieldMessage: fieldMessage.value,
-    setFocus: (value: boolean): void => {
-        isFocused.value = value;
-    },
-    setFilled: (value: boolean): void => {
-        isFilled.value = value;
-    },
-    setVariant: (value: string): void => {
-        fieldVariant.value = value;
-    },
-    setMessage: (value: string): void => {
-        fieldMessage.value = value;
-    },
-});
+    setFocus,
+    setFilled,
+    setVariant,
+    setMessage,
+}));
+
+// Provide field component data via dependency injection.
+provideField(provideData);
 
 // --- Computed Component Classes ---
 

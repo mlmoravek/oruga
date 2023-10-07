@@ -39,7 +39,7 @@
   "scripts": {
     "dev": "vite",
     "build:vue": "rimraf dist && vite build && vite build --mode minify",
-    "build:vue:watch": "vite build --watch",
+    "build:vue:watch": "vite build --mode minify --watch",
     "build:lib": "rimraf dist && npm run test:ts && npm run build:vue && npm run build:types",
     "build:lib:watch": "npm link &&  \"npm run build:vue:watch\"",
     "build:types": "vue-tsc --emitDeclarationOnly true --declarationDir dist/types --declaration true --declarationMap true",

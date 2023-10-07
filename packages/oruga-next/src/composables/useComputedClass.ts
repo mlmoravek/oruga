@@ -20,6 +20,15 @@ const getContext = (vm: ComponentInternalInstance): ComponentContext => {
     const computedNames = vm.proxy?.$options.computed
         ? Object.keys(vm.proxy.$options.computed)
         : [];
+
+    let props = vm.proxy.$props;
+
+    // get all props which ends with "Props", these are compressed parent props
+    // append these parent props as root level prop
+    Object.keys(props)
+        .filter((key) => key.endsWith("Props"))
+        .forEach((key) => (props = { ...props, ...props[key] }));
+
     const computedProps = computedNames
         .filter((e) => !endsWith(e, "Classes"))
         .reduce((o, key) => {
@@ -28,13 +37,20 @@ const getContext = (vm: ComponentInternalInstance): ComponentContext => {
         }, {});
 
     return {
-        props: vm.proxy.$props,
+        props: props,
         data: vm.proxy.$data,
         computed: computedProps,
     };
 };
 
-export function useComputedClass(field, defaultValue, suffix = ""): string {
+/**
+ * Compute a class by field name
+ */
+export function useComputedClass(
+    field: string,
+    defaultValue?: string,
+    suffix = "",
+): string {
     // getting a hold of the internal instance in setup()
     const vm = getCurrentInstance();
     if (!vm)

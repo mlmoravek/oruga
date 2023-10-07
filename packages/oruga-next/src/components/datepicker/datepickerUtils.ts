@@ -95,7 +95,12 @@ export function matchWithGroups(pattern: string, str: string): any {
 }
 
 /** Return array of all days in the week that the startingDate is within */
-export function weekBuilder(startingDate, month, year): Date[] {
+export function weekBuilder(
+    startingDate: number,
+    month: number,
+    year: number,
+    firstDayOfWeek: number,
+): Date[] {
     const thisMonth = new Date(year, month);
 
     const thisWeek = [];
@@ -103,9 +108,9 @@ export function weekBuilder(startingDate, month, year): Date[] {
     const dayOfWeek = new Date(year, month, startingDate).getDay();
 
     const end =
-        dayOfWeek >= this.firstDayOfWeek
-            ? dayOfWeek - this.firstDayOfWeek
-            : 7 - this.firstDayOfWeek + dayOfWeek;
+        dayOfWeek >= firstDayOfWeek
+            ? dayOfWeek - firstDayOfWeek
+            : 7 - firstDayOfWeek + dayOfWeek;
 
     let daysAgo = 1;
     for (let i = 0; i < end; i++) {

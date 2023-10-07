@@ -1,2 +1,2 @@
-export * from "./Config";
-export * from "./Programmatic";
+export * from "./config";
+export * from "./programmatic";

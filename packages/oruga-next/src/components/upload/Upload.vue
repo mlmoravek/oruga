@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed, ref, watch, type PropType } from "vue";
-import { baseComponentProps } from "@/mixins/SharedProps";
+import { baseComponentProps } from "@/utils/SharedProps";
 import { getOption } from "@/utils/config";
 import {
     useComputedClass,
     useClassProps,
     useVModelBinding,
-    useFormInput,
+    useInputHandler,
 } from "@/composables";
 import { File } from "../../utils/ssr";
 
@@ -52,6 +52,13 @@ const props = defineProps({
     expanded: { type: Boolean, default: false },
     /** Replace last chosen files every time (like native file input element) */
     native: { type: Boolean, default: true },
+    /** Enable html 5 native validation */
+    useHtml5Validation: {
+        type: Boolean,
+        default: () => getOption("useHtml5Validation", true),
+    },
+    /** The message which is shown when a validation error occurs */
+    validationMessage: { type: String, default: undefined },
     // add class props (will not be displayed in the docs)
     ...useClassProps([
         "rootClass",
@@ -64,15 +71,28 @@ const props = defineProps({
 });
 
 const emits = defineEmits<{
-    /** modelValue prop two-way binding */
+    /**
+     * modelValue prop two-way binding
+     * @param value {Object | Object[] | File | File[]} updated modelValue prop
+     */
     (e: "update:modelValue", value: Object | Object[] | File | File[]): void;
-    /** on input focus event */
-    (e: "focus", evt: Event): void;
-    /** on input blur event */
-    (e: "blur", evt: Event): void;
-    /** on input invalid event */
-    (e: "invalid", evt: Event): void;
+    /**
+     * on input focus event
+     * @param event {Event} native event
+     */
+    (e: "focus", event: Event): void;
+    /**
+     * on input blur event
+     * @param event {Event} native event
+     */
+    (e: "blur", event: Event): void;
+    /**
+     * on input invalid event
+     * @param event {Event} native event
+     */
+    (e: "invalid", event: Event): void;
 }>();
+
 const inputRef = ref();
 
 const vmodel = useVModelBinding<Object | Object[] | File | File[]>(
@@ -81,14 +101,18 @@ const vmodel = useVModelBinding<Object | Object[] | File | File[]>(
 );
 
 // use form input functionality
-const { checkHtml5Validity, isValid } = useFormInput(inputRef, emits);
+const { checkHtml5Validity, onFocus, onBlur, isValid } = useInputHandler(
+    inputRef,
+    emits,
+    props,
+);
 
 const dragDropFocus = ref(false);
 
 /**
- *   When v-model is changed:
- *   1. Reset interna input file value
- *   2. If it's invalid, validate again.
+ * When v-model is changed:
+ * 1. Reset interna input file value
+ * 2. If it's invalid, validate again.
  */
 watch(
     () => props.modelValue,
@@ -103,10 +127,12 @@ watch(
  * Listen change event on input type 'file',
  * emit 'input' event and validate
  */
-function onFileChange(event): void {
+function onFileChange(event: Event | DragEvent): void {
     if (props.disabled) return;
     if (props.dragDrop) updateDragDropFocus(false);
-    const value = event.target.files || event.dataTransfer.files;
+    const value =
+        (event.target as HTMLInputElement).files ||
+        (event as DragEvent).dataTransfer.files;
     // no file selected
     if (value.length === 0) {
         if (!vmodel.value) return;
@@ -151,23 +177,17 @@ function onFileChange(event): void {
     if (!props.dragDrop) checkHtml5Validity();
 }
 
-/*
- * Reset file input value
- */
+/** Reset file input value */
 function clearInput(): void {
     inputRef.value.value = null;
 }
 
-/**
- * Listen drag-drop to update internal variable
- */
-function updateDragDropFocus(focus): void {
+/** Listen drag-drop to update internal variable */
+function updateDragDropFocus(focus: boolean): void {
     if (!props.disabled) dragDropFocus.value = focus;
 }
 
-/**
- * Check mime type of file
- */
+/** Check mime type of file s*/
 function checkType(file: File): boolean {
     if (!props.accept) return true;
     const types = props.accept.split(",");
@@ -185,6 +205,20 @@ function checkType(file: File): boolean {
         }
     }
     return false;
+}
+
+function onClick(event: Event): void {
+    if (props.disabled) return;
+    if (!props.dragDrop) {
+        event.preventDefault();
+        // click input if not drag and drop is used
+        const clickEvent = new MouseEvent("click", {
+            view: window,
+            bubbles: true,
+            cancelable: false,
+        });
+        inputRef.value.dispatchEvent(clickEvent);
+    }
 }
 
 // --- Computed Component Classes ---
@@ -216,7 +250,7 @@ const draggableClasses = computed(() => [
 </script>
 
 <template>
-    <label :class="rootClasses">
+    <label :class="rootClasses" @click="onClick">
         <template v-if="!dragDrop">
             <slot />
         </template>
@@ -240,6 +274,8 @@ const draggableClasses = computed(() => [
             :multiple="multiple"
             :accept="accept"
             :disabled="disabled"
-            @change="onFileChange" />
+            @change="onFileChange"
+            @focus="onFocus"
+            @blur="onBlur" />
     </label>
 </template>

@@ -1,18 +1,22 @@
+import type { App, DefineComponent, Plugin } from "vue";
+import { createVNode, render } from "vue";
+
 import Notification from "./Notification.vue";
 import NotificationNotice from "./NotificationNotice.vue";
 
-import { getOptions } from "../../utils/config";
-import { getValueByPath } from "../../utils/helpers";
-import { merge } from "../../utils/helpers";
-import { VueInstance } from "../../utils/config";
+import { VueInstance, getOption } from "@/utils/config";
+import { merge } from "@/utils/helpers";
 import {
     registerComponent,
     registerProgrammaticComponent,
-} from "../../utils/plugins";
-import InstanceRegistry from "../..//utils/InstanceRegistry";
+} from "@/utils/plugins";
+import InstanceRegistry from "@//utils/InstanceRegistry";
 
-import type { App, DefineComponent, Plugin } from "vue";
-import { createVNode, render } from "vue";
+declare module "@/types" {
+    interface OrugaProgrammatic {
+        notification: typeof NotificationProgrammatic;
+    }
+}
 
 let localVueInstance: App;
 
@@ -31,14 +35,9 @@ const NotificationProgrammatic = {
 
         const defaultParams = {
             programmatic: { instances },
-            position: getValueByPath(
-                getOptions(),
-                "notification.position",
-                "top-right",
-            ),
+            position: getOption("notification.position", "top-right"),
             closable:
-                params.closable ||
-                getValueByPath(getOptions(), "notification.closable", false),
+                params.closable || getOption("notification.closable", false),
         };
 
         let slot;
@@ -65,9 +64,7 @@ const NotificationProgrammatic = {
         return vnode.component.proxy as InstanceType<typeof NotificationNotice>;
     },
     closeAll(...args: any[]): void {
-        instances.walk((entry) => {
-            entry.close(...args);
-        });
+        instances.walk((entry) => entry.close(...args));
     },
 };
 

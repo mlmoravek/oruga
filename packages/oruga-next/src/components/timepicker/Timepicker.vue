@@ -4,16 +4,17 @@ import { computed, ref, watch, type PropType } from "vue";
 import OSelect from "../select/Select.vue";
 import OPickerWrapper from "../datepicker/PickerWrapper.vue";
 
-import { baseComponentProps } from "@/mixins/SharedProps";
+import { baseComponentProps } from "@/utils/SharedProps";
 import { getOption } from "@/utils/config";
 import {
     useComputedClass,
     useClassProps,
     useVModelBinding,
     useMatchMedia,
+    usePropBinding,
 } from "@/composables";
 
-import { useTimepickerMixins } from "./useTimepickerMixin";
+import { useTimepickerMixins } from "./useTimepickerShare";
 
 /**
  * An input with a simple dropdown/modal for selecting a time, uses native timepicker for mobile
@@ -32,6 +33,8 @@ const props = defineProps({
     ...baseComponentProps,
     /** @model */
     modelValue: { type: Date as PropType<Date>, default: undefined },
+    /** The active state of the dropdown */
+    active: { type: Boolean, default: false },
     /** Min time to select */
     minTime: { type: Date as PropType<Date>, default: undefined },
     /** Max time to select */
@@ -45,9 +48,9 @@ const props = defineProps({
     /** Makes the input rounded */
     rounded: { type: Boolean, default: false },
     /** Same as native input readonly */
-    readonly: { type: Boolean, default: true },
+    readonly: { type: Boolean, default: false },
     /** Same as native disabled */
-    disabled: { type: Boolean, default: true },
+    disabled: { type: Boolean, default: false },
     /**
      * Size of the button, optional
      * @values small, medium, large
@@ -74,22 +77,26 @@ const props = defineProps({
     /** Date format locale */
     locale: {
         type: String,
-        default: () => getOption("locale", ""),
+        default: () => getOption("locale"),
     },
     /** Custom function to format a date into a string */
     timeFormatter: {
         type: Function as PropType<(date: Date) => string>,
-        default: () => getOption("timepicker.timeFormatter", undefined),
+        default: (
+            date: Date | Date[],
+            defaultFunction: (date: Date | Date[]) => string,
+        ) => getOption("timepicker.timeFormatter", defaultFunction)(date),
     },
     /** Custom function to parse a string into a date */
     timeParser: {
         type: Function as PropType<(date: string) => Date>,
-        default: () => getOption("timepicker.timeParser", undefined),
+        default: (date: string, defaultFunction: (date: string) => Date) =>
+            getOption("timepicker.timeParser", defaultFunction)(date),
     },
     /** time creator function, default is `new Date()` */
     timeCreator: {
         type: Function as PropType<() => Date>,
-        default: () => getOption("timepicker.timeCreator", () => new Date()),
+        default: () => getOption("timepicker.timeCreator", () => new Date())(),
     },
     /** Define a list of times which can not be selected */
     unselectableTimes: {
@@ -115,9 +122,7 @@ const props = defineProps({
     /** Enable mobile native input if mobile agent */
     mobileNative: {
         type: Boolean,
-        default: () => {
-            return getOption("timepicker.mobileNative", true);
-        },
+        default: () => getOption("timepicker.mobileNative", true),
     },
     /**
      * Icon pack to use
@@ -174,27 +179,44 @@ const props = defineProps({
 });
 
 const emits = defineEmits<{
-    /** modelValue prop two-way binding */
+    /**
+     * modelValue prop two-way binding
+     * @param value {Date} updated modelValue prop
+     */
     (e: "update:modelValue", value: Date): void;
-    /** on active state change event */
-    (e: "active-change", value: boolean): void;
-    /** on input focus event */
-    (e: "focus", evt: Event): void;
-    /** on input blur event */
-    (e: "blur", evt: Event): void;
-    /** on input invalid event */
-    (e: "invalid", evt: Event): void;
-    /** on icon click event */
-    (e: "icon-click", evt: Event): void;
-    /** on icon right click event */
-    (e: "icon-right-click", evt: Event): void;
+    /**
+     * active prop two-way binding
+     * @param value {boolean} updated active prop
+     */
+    (e: "update:active", value: boolean): void;
+    /**
+     * on input focus event
+     * @param event {Event} native event
+     */
+    (e: "focus", event: Event): void;
+    /**
+     * on input blur event
+     * @param event {Event} native event
+     */
+    (e: "blur", event: Event): void;
+    /**
+     * on input invalid event
+     * @param event {Event} native event
+     */
+    (e: "invalid", event: Event): void;
+    /**
+     * on icon click event
+     * @param event {Event} native event
+     */
+    (e: "icon-click", event: Event): void;
+    /**
+     * on icon right click event
+     * @param event {Event} native event
+     */
+    (e: "icon-right-click", event: Event): void;
 }>();
 
 const { isMobile } = useMatchMedia();
-
-// use form input functionality
-// const { checkHtml5Validity, onBlur, onFocus, onInvalid, isValid } =
-//     useFormInput(inputRef, emits);
 
 const {
     defaultTimeFormatter,
@@ -209,6 +231,14 @@ const {
 } = useTimepickerMixins(props);
 
 const vmodel = useVModelBinding<Date>(props, emits);
+
+/** Dropdown active state */
+const isActive = usePropBinding<boolean>("active", props, emits);
+
+const hoursSelected = ref();
+const minutesSelected = ref();
+const secondsSelected = ref();
+const meridienSelected = ref();
 
 /**
  * When v-model is changed:
@@ -236,15 +266,8 @@ watch(
 
 /** Format date into string */
 const formattedValue = computed(() =>
-    typeof props.timeFormatter === "function"
-        ? props.timeFormatter(props.modelValue)
-        : defaultTimeFormatter(props.modelValue),
+    (props.timeFormatter as any)(props.modelValue, defaultTimeFormatter),
 );
-
-const hoursSelected = ref();
-const minutesSelected = ref();
-const secondsSelected = ref();
-const meridienSelected = ref();
 
 const nativeStep = computed(() => (props.enableSeconds ? "1" : null));
 
@@ -605,11 +628,7 @@ function onSecondsChange(value: string): void {
 
 /** Parse string into date */
 function onChange(value: string): void {
-    const parser =
-        typeof props.timeParser === "function"
-            ? props.timeParser
-            : defaultTimeParser;
-    const date = parser(value);
+    const date = (props.timeParser as any)(value, defaultTimeParser);
     vmodel.value = date ? date : null;
 }
 
@@ -635,7 +654,7 @@ function onChangeNativePicker(date: string): void {
 
 // --- Computed Component Classes ---
 
-const rootClass = computed(() =>
+const dropdownClass = computed(() =>
     useComputedClass("dropdownClasses.rootClass", "o-tpck__dropdown"),
 );
 
@@ -672,10 +691,22 @@ const separatorClasses = computed(() => [
 const footerClasses = computed(() => [
     useComputedClass("footerClass", "o-tpck__footer"),
 ]);
+
+// --- Expose Public Functionalities ---
+
+const wrapperRef = ref<typeof OPickerWrapper>();
+defineExpose({
+    // expose the html root element of this component
+    $el: computed(() => wrapperRef.value.$el),
+    // expose the input element
+    $inputRef: computed(() => wrapperRef.value.$inputRef),
+});
 </script>
 
 <template>
     <OPickerWrapper
+        ref="wrapperRef"
+        v-model:active="isActive"
         v-bind="$attrs"
         :value="vmodel"
         :picker-props="props"
@@ -685,17 +716,19 @@ const footerClasses = computed(() => [
         :native-max="formatNative(maxTime)"
         :native-min="formatNative(minTime)"
         :native-step="nativeStep"
-        :rootclass="rootClass"
+        :dropdown-class="dropdownClass"
         :root-classes="rootClasses"
         :box-classes="boxClasses"
         @change="onChange"
         @native-change="onChangeNativePicker"
-        @active-change="$emit('active-change', $event)"
         @focus="$emit('focus', $event)"
         @blur="$emit('blur', $event)"
         @invalid="$emit('invalid', $event)"
         @icon-click="$emit('icon-click', $event)"
         @icon-right-click="$emit('icon-right-click', $event)">
+        <template v-if="$slots.trigger" #trigger>
+            <slot name="trigger" />
+        </template>
         <o-select
             v-bind="selectBind"
             v-model="hoursSelected"

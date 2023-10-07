@@ -3,13 +3,19 @@ import { createVNode, render } from "vue";
 
 import Loading from "./Loading.vue";
 
-import { VueInstance } from "../../utils/config";
-import { merge } from "../../utils/helpers";
+import { VueInstance } from "@/utils/config";
+import { merge } from "@/utils/helpers";
 import {
     registerComponent,
-    registerProgrammaticComponent,
-} from "../../utils/plugins";
-import InstanceRegistry from "../../utils/InstanceRegistry";
+    registerComponentProgrammatic,
+} from "@/utils/plugins";
+import InstanceRegistry from "@/utils/InstanceRegistry";
+
+declare module "@/types" {
+    interface OrugaProgrammatic {
+        loading: typeof LoadingProgrammatic;
+    }
+}
 
 let localVueInstance: App;
 
@@ -34,10 +40,7 @@ const LoadingProgrammatic = {
         const vnode = createVNode(Loading, propsData);
         vnode.appContext = app._context;
         render(vnode, document.createElement("div"));
-        return Object.assign(
-            vnode.component.proxy,
-            vnode.component.exposed,
-        ) as InstanceType<typeof Loading>;
+        return vnode.component.proxy as InstanceType<typeof Loading>;
     },
     closeAll(...args: any[]): void {
         instances.walk((entry) => entry.close(...args));
@@ -48,14 +51,8 @@ export default {
     install(app: App) {
         localVueInstance = app;
         registerComponent(app, Loading);
-        registerProgrammaticComponent(app, "loading", LoadingProgrammatic);
+        registerComponentProgrammatic(app, "loading", LoadingProgrammatic);
     },
 } as Plugin;
-
-declare module "@/types" {
-    interface OrugaPrgrammatic {
-        loading: typeof LoadingProgrammatic;
-    }
-}
 
 export { LoadingProgrammatic, Loading as OLoading };

@@ -12,14 +12,13 @@ export const registerComponent = (app: App, component: Component): void => {
 };
 
 /** register a global programmatic component to the oruga object */
-export const registerProgrammaticComponent = (
+export const registerComponentProgrammatic = (
     app: App,
     property: string,
     component: Component,
 ): void => {
     // use composable for unified access to programmatic oruga object
     const oruga = useOruga();
-
     // add component (manipulates the programmatic oruga object)
     addProgrammatic(property, component);
 

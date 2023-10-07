@@ -1,12 +1,14 @@
-import { injectField } from "@/components/field/useFieldMixin";
+import { injectField } from "@/components/field/useFieldShare";
 import { getOption } from "@/utils/config";
 import {
     // getCurrentInstance,
     nextTick,
     ref,
+    computed,
     type ComputedRef,
     type Ref,
     type ExtractPropTypes,
+    type ComponentPublicInstance,
 } from "vue";
 
 // This should cover all types of HTML elements that have properties related to
@@ -38,8 +40,12 @@ function asValidatableFormElement(el: unknown): ValidatableFormElement | null {
  * Form input handler functionalities
  */
 export function useInputHandler(
-    /** input ref element */
-    inputRef: Ref<ValidatableFormElement> | ComputedRef<ValidatableFormElement>,
+    /** input ref element - can be a html element or a vue component*/
+    inputRef:
+        | Ref<ValidatableFormElement>
+        | ComputedRef<ValidatableFormElement>
+        | Ref<ComponentPublicInstance>
+        | Ref<InstanceType<any>>,
     /** emitted input events */
     emits: {
         /** on input focus event */
@@ -60,6 +66,19 @@ export function useInputHandler(
     // inject parent field component if used inside one
     const { parentField } = injectField();
 
+    const element = computed<ValidatableFormElement>(() => {
+        let el = inputRef.value;
+        // if element does not have any refs return element
+        if (el && !el["$inputRef"]) return el as ValidatableFormElement;
+
+        // go deep to get the internal input element defined by $elementRef
+        while (el && el["$inputRef"]) {
+            el = el["$inputRef"];
+        }
+
+        return el as ValidatableFormElement;
+    });
+
     // --- Input Focus Feature ---
 
     const isFocused = ref(false);
@@ -69,7 +88,7 @@ export function useInputHandler(
      */
     function setFocus(): void {
         nextTick(() => {
-            if (inputRef.value) inputRef.value.focus();
+            if (element.value) element.value.focus();
         });
     }
 
@@ -113,7 +132,8 @@ export function useInputHandler(
     function checkHtml5Validity(): boolean {
         if (!props.useHtml5Validation) return;
 
-        if (inputRef.value.validity.valid) {
+        if (!element.value) return;
+        if (element.value.validity.valid) {
             setFieldValidity(null, null);
             isValid.value = true;
         } else {
@@ -127,7 +147,7 @@ export function useInputHandler(
     function setInvalid(): void {
         const variant = "danger";
         const message =
-            props.validationMessage || inputRef.value.validationMessage;
+            props.validationMessage || element.value.validationMessage;
         setFieldValidity(variant, message);
     }
 

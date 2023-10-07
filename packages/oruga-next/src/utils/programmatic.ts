@@ -1,8 +1,8 @@
 import { ref } from "vue";
-import type { OrugaPrgrammatic } from "@/types/Programmatic";
+import type { OrugaProgrammatic } from "@/types";
 
 /** Oruga object for programmatic components */
-const oruga = ref<OrugaPrgrammatic>({} as OrugaPrgrammatic);
+const oruga = ref<OrugaProgrammatic>({} as OrugaProgrammatic);
 
 /** Add components to the oruga object */
 export function addProgrammatic(property: string, component: object): void {
@@ -10,6 +10,6 @@ export function addProgrammatic(property: string, component: object): void {
 }
 
 /** Composable for internal and external usage of programmatic components*/
-export function useOruga() {
+export function useOruga(): OrugaProgrammatic {
     return oruga.value;
 }

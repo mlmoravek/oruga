@@ -49,13 +49,6 @@ title: Field
 | mobileBreakpoint | Mobile breakpoint as max-width value                                                                                  | string  | -                                                                               | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>field: {<br>&nbsp;&nbsp;mobileBreakpoint: undefined<br>}</code> |
 | variant          | Color of the field and help message, also adds a matching icon, optional.<br/>Used by Input, Select and Autocomplete. | string  | `primary`, `info`, `success`, `warning`, `danger`, `and any other custom color` |                                                                                                                                                             |
 
-### Events
-
-| Event name     | Properties | Description                  |
-| -------------- | ---------- | ---------------------------- |
-| update:variant |            | variant prop two-way binding |
-| update:message |            | message prop two-way binding |
-
 ### Slots
 
 | Name    | Description | Bindings |

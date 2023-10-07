@@ -10,7 +10,7 @@ import {
     getOptions,
     ConfigProgrammatic,
 } from "./utils/config";
-import { registerPlugin, registerProgrammaticComponent } from "./utils/plugins";
+import { registerPlugin, registerComponentProgrammatic } from "./utils/plugins";
 
 // export all types
 export * from "./types";
@@ -42,12 +42,12 @@ export default {
             registerPlugin(app, plugins[componentKey]);
         }
         // add programmatic config component
-        registerProgrammaticComponent(app, "config", ConfigProgrammatic);
+        registerComponentProgrammatic(app, "config", ConfigProgrammatic);
     },
 };
 
 declare module "./types" {
-    interface OrugaPrgrammatic {
+    interface OrugaProgrammatic {
         config: typeof ConfigProgrammatic;
     }
 }

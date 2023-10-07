@@ -3,13 +3,19 @@ import { createVNode, render } from "vue";
 
 import Modal from "./Modal.vue";
 
-import { VueInstance } from "../../utils/config";
-import { merge } from "../../utils/helpers";
+import { VueInstance } from "@/utils/config";
+import { merge } from "@/utils/helpers";
 import {
     registerComponent,
     registerProgrammaticComponent,
-} from "../../utils/plugins";
-import InstanceRegistry from "../../utils/InstanceRegistry";
+} from "@/utils/plugins";
+import InstanceRegistry from "@/utils/InstanceRegistry";
+
+declare module "@/types" {
+    interface OrugaProgrammatic {
+        modal: typeof ModalProgrammatic;
+    }
+}
 
 let localVueInstance: App;
 
@@ -26,7 +32,7 @@ const ModalProgrammatic = {
             newParams = params;
         }
 
-        const defaultParam = {
+        const defaultParams = {
             programmatic: { instances },
         };
 
@@ -36,11 +42,12 @@ const ModalProgrammatic = {
             delete newParams.content;
         }
 
-        const propsData = merge(defaultParam, newParams);
+        const propsData = merge(defaultParams, newParams);
         propsData.promise = new Promise((p1, p2) => {
             propsData.programmatic.resolve = p1;
             propsData.programmatic.reject = p2;
         });
+        const defaultSlot = () => slot;
 
         const defaultSlot = () => slot;
         const app = localVueInstance || VueInstance;
@@ -50,9 +57,7 @@ const ModalProgrammatic = {
         return vnode.component.proxy as InstanceType<typeof Modal>;
     },
     closeAll(...args: any[]): void {
-        instances.walk((entry) => {
-            entry.close(...args);
-        });
+        instances.walk((entry) => entry.close(...args));
     },
 };
 

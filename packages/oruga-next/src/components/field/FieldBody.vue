@@ -9,7 +9,7 @@ import {
     type PropType,
 } from "vue";
 
-import { injectField } from "./useFieldMixin";
+import { injectField } from "./useFieldShare";
 
 export default defineComponent({
     name: "OFieldBody",
@@ -47,7 +47,10 @@ export default defineComponent({
                     }
                     return h(
                         resolveComponent("OField"),
-                        { variant: parentField.value.fieldVariant, message },
+                        {
+                            variant: parentField.value.fieldVariant,
+                            message,
+                        },
                         () => [element],
                     );
                 }),
@@ -56,4 +59,3 @@ export default defineComponent({
     },
 });
 </script>
-./useFieldMixin

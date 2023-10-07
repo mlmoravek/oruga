@@ -1,22 +1,20 @@
 <script setup lang="ts">
 import { computed, ref, watch, type PropType } from "vue";
-
 import ODatepicker from "../datepicker/Datepicker.vue";
 import OTimepicker from "../timepicker/Timepicker.vue";
 import OInput from "../input/Input.vue";
-
-import { baseComponentProps } from "@/mixins/SharedProps";
+import { baseComponentProps } from "@/utils/SharedProps";
 import { getOption } from "@/utils/config";
 import {
     useComputedClass,
     useClassProps,
     useInputHandler,
+    usePropBinding,
 } from "@/composables";
 import { isMobileAgent } from "@/utils/helpers";
-
-import type { DatepickerProps } from "../datepicker/useDatepickerMixin";
-import type { TimepickerProps } from "../timepicker/useTimepickerMixin";
 import { matchWithGroups } from "../datepicker/datepickerUtils";
+import type { DatepickerProps } from "../datepicker/useDatepickerShare";
+import type { TimepickerProps } from "../timepicker/useTimepickerShare";
 
 /**
  * An input with a simple dropdown/modal for selecting a date and time, uses native datetimepicker for mobile
@@ -32,12 +30,15 @@ defineOptions({
 
 const AM = "AM";
 const PM = "PM";
+const HOUR_FORMAT_24 = "24";
 
 const props = defineProps({
     // add global shared props (will not be displayed in the docs)
     ...baseComponentProps,
     /** @model */
     modelValue: { type: Date, default: undefined },
+    /** The active state of the dropdown */
+    active: { type: Boolean, default: false },
     /** Define props for the underlying datepicker component */
     datepicker: {
         type: Object as PropType<DatepickerProps>,
@@ -66,9 +67,9 @@ const props = defineProps({
     /** Input placeholder */
     placeholder: { type: String, default: undefined },
     /** Same as native input readonly */
-    readonly: { type: Boolean, default: true },
+    readonly: { type: Boolean, default: false },
     /** Same as native disabled */
-    disabled: { type: Boolean, default: true },
+    disabled: { type: Boolean, default: false },
     /** Display datetimepicker inline */
     inline: { type: Boolean, default: false },
     openOnFocus: {
@@ -78,26 +79,30 @@ const props = defineProps({
     /** Date format locale */
     locale: {
         type: String,
-        default: () => getOption("locale", ""),
+        default: () => getOption("locale"),
     },
     /** Custom function to format a date into a string */
     datetimeFormatter: {
         type: Function as PropType<(date: Date) => string>,
-        default: () => getOption("datetimepicker.dateFormatter", undefined),
+        default: (
+            date: Date | Date[],
+            defaultFunction: (date: Date | Date[]) => string,
+        ) => getOption("datetimepicker.dateFormatter", defaultFunction)(date),
     },
     /** Custom function to parse a string into a date */
     datetimeParser: {
         type: Function as PropType<(date: string) => Date>,
-        default: () => getOption("datetimepicker.dateParser", undefined),
+        default: (date: string, defaultFunction: (date: string) => Date) =>
+            getOption("datetimepicker.dateParser", defaultFunction)(date),
     },
     /** Date creator function, default is `new Date()` */
     datetimeCreator: {
         type: Function as PropType<(date: Date) => Date>,
-        default: () =>
+        default: (date: Date) =>
             getOption(
                 "datetimepicker.datetimeCreator",
                 (d: Date) => new Date(d),
-            ),
+            )(date),
     },
     /** Dropdown position */
     position: { type: String, default: undefined },
@@ -143,36 +148,77 @@ const props = defineProps({
 });
 
 const emits = defineEmits<{
-    /** modelValue prop two-way binding */
+    /**
+     * modelValue prop two-way binding
+     * @param value {Date | Date[]} updated modelValue prop
+     */
     (e: "update:modelValue", value: Date | Date[]): void;
-    /** on range start is selected event */
+    /**
+     * active prop two-way binding
+     * @param value {boolean} updated active prop
+     */
+    (e: "update:active", value: boolean): void;
+    /**
+     * on range start is selected event
+     * @param value {Date} range start date
+     */
     (e: "range-start", value: Date): void;
-    /** on range end is selected event */
+    /**
+     * on range end is selected event
+     * @param value {Date} range end date
+     */
     (e: "range-end", value: Date): void;
-    /** on month change event */
+    /**
+     * on month change event
+     * @param value {number} month number
+     */
     (e: "change-month", value: number): void;
-    /** on year change event */
+    /**
+     * on year change event
+     * @param value {number} year number
+     */
     (e: "change-year", value: number): void;
-    /** on active state change event */
-    (e: "active-change", value: boolean): void;
-    /** on input focus event */
-    (e: "focus", evt: Event): void;
-    /** on input blur event */
-    (e: "blur", evt: Event): void;
-    /** on input invalid event */
-    (e: "invalid", evt: Event): void;
-    /** on icon click event */
-    (e: "icon-click", evt: Event): void;
-    /** on icon right click event */
-    (e: "icon-right-click", evt: Event): void;
+    /**
+     * on input focus event
+     * @param event {Event} native event
+     */
+    (e: "focus", event: Event): void;
+    /**
+     * on input blur event
+     * @param event {Event} native event
+     */
+    (e: "blur", event: Event): void;
+    /**
+     * on input invalid event
+     * @param event {Event} native event
+     */
+    (e: "invalid", event: Event): void;
+    /**
+     * on icon click event
+     * @param event {Event} native event
+     */
+    (e: "icon-click", event: Event): void;
+    /**
+     * on icon right click event
+     * @param event {Event} native event
+     */
+    (e: "icon-right-click", event: Event): void;
 }>();
 
-const datepickerRef = ref();
-const timepickerRef = ref();
-const inputRef = ref();
+const datepickerRef = ref<InstanceType<typeof ODatepicker>>();
+const timepickerRef = ref<InstanceType<typeof OTimepicker>>();
+const nativeInputRef = ref<InstanceType<typeof OInput>>();
+
+const elementRef = computed(() =>
+    isMobileNative.value ? nativeInputRef.value : datepickerRef.value.$inputRef,
+);
 
 // use form input functionality for native input
-const { onBlur, onFocus, onInvalid } = useInputHandler(inputRef, emits, props);
+const { onBlur, onFocus, onInvalid } = useInputHandler(
+    elementRef,
+    emits,
+    props,
+);
 
 const isMobileNative = computed(
     () => props.mobileNative && isMobileAgent.any(),
@@ -182,6 +228,9 @@ watch([() => isMobileNative.value, () => props.inline], () => {
     // $refs attached, it's time to refresh datepicker (input)
     if (datepickerRef.value) datepickerRef.value.$forceUpdate();
 });
+
+/** Dropdown active state */
+const isActive = usePropBinding<boolean>("active", props, emits);
 
 const vmodel = computed({
     get() {
@@ -283,21 +332,15 @@ const maxTime = computed(() => {
 });
 
 const datepickerSize = computed(() =>
-    props.datepicker && props.datepicker.size
-        ? props.datepicker.size
-        : props.size,
+    props.datepicker?.size ? props.datepicker.size : props.size,
 );
 
 const timepickerSize = computed(() =>
-    props.timepicker && props.timepicker.size
-        ? props.timepicker.size
-        : props.size,
+    props.timepicker?.size ? props.timepicker.size : props.size,
 );
 
 const timepickerDisabled = computed(() =>
-    props.timepicker && props.timepicker.disabled
-        ? props.timepicker.disabled
-        : props.disabled,
+    props.timepicker?.disabled ? props.timepicker.disabled : props.disabled,
 );
 
 function formatNative(value: Date): string {
@@ -325,10 +368,13 @@ function formatNative(value: Date): string {
     }
     return "";
 }
+
 // --- Time Format Feature ---
 
 const enableSeconds = computed(() =>
-    timepickerRef.value ? timepickerRef.value.enableSeconds : false,
+    timepickerRef.value?.enableSeconds
+        ? timepickerRef.value.enableSeconds
+        : false,
 );
 
 const localeOptions = computed(
@@ -343,10 +389,10 @@ const localeOptions = computed(
         }).resolvedOptions() as Intl.DateTimeFormatOptions,
 );
 
-const isHourFormat24 = computed(() =>
-    timepickerRef.value
-        ? timepickerRef.value.isHourFormat24
-        : !localeOptions.value.hour12,
+const isHourFormat24 = computed(
+    () =>
+        props.timepicker?.hourFormat === HOUR_FORMAT_24 ||
+        !localeOptions.value.hour12,
 );
 
 const dtf = computed(
@@ -364,24 +410,48 @@ const dtf = computed(
         }),
 );
 
-function defaultDatetimeParser(date: string): Date {
-    const datetimeParser = getOption(
-        "datetimepicker.datetimeParser",
-        undefined,
-    );
-    if (typeof props.datetimeParser === "function") {
-        return props.datetimeParser(date);
-    } else if (typeof datetimeParser === "function") {
-        return datetimeParser(date);
-    } else {
+const amString = computed(() => {
+    if (
+        dtf.value.formatToParts &&
+        typeof dtf.value.formatToParts === "function"
+    ) {
+        const d = props.datetimeCreator(new Date());
+        d.setHours(10);
+        const dayPeriod = dtf.value
+            .formatToParts(d)
+            .find((part) => part.type === "dayPeriod");
+        if (dayPeriod) return dayPeriod.value;
+    }
+    return AM;
+});
+
+const pmString = computed(() => {
+    if (
+        dtf.value.formatToParts &&
+        typeof dtf.value.formatToParts === "function"
+    ) {
+        const d = props.datetimeCreator(new Date());
+        d.setHours(20);
+        const dayPeriod = dtf.value
+            .formatToParts(d)
+            .find((part) => part.type === "dayPeriod");
+        if (dayPeriod) {
+            return dayPeriod.value;
+        }
+    }
+    return PM;
+});
+
+function defaultDatetimeParser(value: string): Date {
+    function defaultParser(date: string): Date {
         if (
             dtf.value.formatToParts &&
             typeof dtf.value.formatToParts === "function"
         ) {
             const dayPeriods = [AM, PM, AM.toLowerCase(), PM.toLowerCase()];
             if (timepickerRef.value) {
-                dayPeriods.push(timepickerRef.value.amString);
-                dayPeriods.push(timepickerRef.value.pmString);
+                dayPeriods.push(amString.value);
+                dayPeriods.push(pmString.value);
             }
             const parts = this.dtf.formatToParts(new Date());
             const formatRegex = parts
@@ -434,20 +504,14 @@ function defaultDatetimeParser(date: string): Date {
 
         return new Date(Date.parse(date));
     }
+    const date = (props.datetimeParser as any)(value, defaultParser);
+    return date;
 }
 
 function defaultDatetimeFormatter(date: Date): string {
-    const datetimeFormatter = getOption(
-        "datetimepicker.datetimeFormatter",
-        undefined,
+    return (props.datetimeFormatter as any)(date, (date: Date) =>
+        date ? dtf.value.format(date) : "",
     );
-    if (typeof props.datetimeFormatter === "function") {
-        return props.datetimeFormatter(date);
-    } else if (typeof datetimeFormatter === "function") {
-        return datetimeFormatter(date);
-    } else {
-        return dtf.value.format(date);
-    }
 }
 
 // --- Event Handler ---
@@ -479,6 +543,15 @@ const datepickerWrapperClasses = computed(() => [
 const timepickerWrapperClasses = computed(() => [
     useComputedClass("timepickerWrapperClass", "o-dtpck__time"),
 ]);
+
+// --- Expose Public Functionalities ---
+
+defineExpose({
+    // expose the html root element of this component
+    $el: computed(() => datepickerRef.value.$el),
+    // expose the input element
+    $inputRef: computed(() => elementRef.value),
+});
 </script>
 
 <template>
@@ -486,6 +559,7 @@ const timepickerWrapperClasses = computed(() => [
         v-if="!isMobileNative || inline"
         ref="datepickerRef"
         v-model="vmodel"
+        v-model:active="isActive"
         v-bind="datepicker"
         :class="datepickerWrapperClasses"
         :rounded="rounded"
@@ -512,7 +586,6 @@ const timepickerWrapperClasses = computed(() => [
         :append-to-body="appendToBody"
         @focus="onFocus"
         @blur="onBlur"
-        @active-change="$emit('active-change', $event)"
         @change-month="$emit('change-month', $event)"
         @change-year="$emit('change-year', $event)"
         @icon-click="$emit('icon-click', $event)"
@@ -541,7 +614,7 @@ const timepickerWrapperClasses = computed(() => [
     <!-- Native Picker -->
     <o-input
         v-else
-        ref="inputRef"
+        ref="nativeInputRef"
         type="datetime-local"
         autocomplete="off"
         :value="formatNative(vmodel)"

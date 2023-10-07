@@ -1,3 +1,5 @@
+import { unref } from "vue";
+
 /**
  * Generates a random string
  */
@@ -106,7 +108,8 @@ export function indexOf<T>(
 export const isObject = <T>(obj: T): boolean =>
     obj && typeof obj === "object" && !Array.isArray(obj);
 
-export const isDefined = <T>(d: T): boolean => d !== undefined;
+export const isDefined = <T>(d: T): boolean =>
+    unref(d) !== null && unref(d) !== undefined;
 
 export function blankIfUndefined(value: string): string {
     return typeof value !== "undefined" && value !== null ? value : "";
@@ -248,6 +251,9 @@ export function removeDiacriticsFromString(value: string): string {
     return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
+/**
+ * @deprecated use ssr helper instead
+ */
 export function isClient(): boolean {
     return typeof window !== "undefined";
 }

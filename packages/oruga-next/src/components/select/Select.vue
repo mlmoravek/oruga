@@ -3,16 +3,16 @@ import { computed, watch, onMounted, ref, nextTick } from "vue";
 
 import OIcon from "../icon/Icon.vue";
 
-import { baseComponentProps } from "@/mixins/SharedProps";
+import { baseComponentProps } from "@/utils/SharedProps";
 import { getOption } from "@/utils/config";
 import {
     useComputedClass,
     useClassProps,
     useVModelBinding,
-    useFormInput,
+    useInputHandler,
 } from "@/composables";
 
-import { injectField } from "../field/useFieldMixin";
+import { injectField } from "../field/useFieldShare";
 
 /**
  * Select an item in a dropdown list. Use with Field to access all functionalities
@@ -122,30 +122,55 @@ const props = defineProps({
 });
 
 const emits = defineEmits<{
-    /** modelValue prop two-way binding */
-    (e: "update:modelValue", value: string | number): void;
-    /** on input focus event */
-    (e: "focus", evt: Event): void;
-    /** on input blur event */
-    (e: "blur", evt: Event): void;
-    /** on input invalid event */
-    (e: "invalid", evt: Event): void;
-    /** on icon click event */
-    (e: "icon-click", evt: Event): void;
-    /** on icon right click event */
-    (e: "icon-right-click", evt: Event): void;
+    /**
+     * modelValue prop two-way binding
+     * @param value { [String, Number, Boolean, Object, Array]} updated modelValue prop
+     */
+    (
+        e: "update:modelValue",
+        value: [string, number, boolean, object, Array<any>],
+    ): void;
+    /**
+     * on input focus event
+     * @param event {Event} native event
+     */
+    (e: "focus", event: Event): void;
+    /**
+     * on input blur event
+     * @param event {Event} native event
+     */
+    (e: "blur", event: Event): void;
+    /**
+     * on input invalid event
+     * @param event {Event} native event
+     */
+    (e: "invalid", event: Event): void;
+    /**
+     * on icon click event
+     * @param event {Event} native event
+     */
+    (e: "icon-click", event: Event): void;
+    /**
+     * on icon right click event
+     * @param event {Event} native event
+     */
+    (e: "icon-right-click", event: Event): void;
 }>();
 
 const selectRef = ref<HTMLInputElement>();
 
 // use form input functionality
 const { checkHtml5Validity, onBlur, onFocus, onInvalid, setFocus } =
-    useFormInput(selectRef, emits);
+    useInputHandler(selectRef, emits, props);
 
 // inject parent field component if used inside one
 const { parentField, statusVariant, statusVariantIcon } = injectField();
 
-const vmodel = useVModelBinding<string | number>(props, emits);
+const vmodel = useVModelBinding<[string, number, boolean, object, Array<any>]>(
+    props,
+    emits,
+    { passive: true },
+);
 
 const placeholderVisible = computed(() => vmodel.value === null);
 
@@ -190,9 +215,7 @@ function iconClick(emit, event): void {
 }
 
 function rightIconClick(event): void {
-    if (props.iconRightClickable) {
-        iconClick("icon-right-click", event);
-    }
+    if (props.iconRightClickable) iconClick("icon-right-click", event);
 }
 
 // --- Computed Component Classes ---
@@ -252,6 +275,15 @@ const iconRightClasses = computed(() => [
 
 <template>
     <div :class="rootClasses">
+        <o-icon
+            v-if="icon"
+            :class="iconLeftClasses"
+            :clickable="iconClickable"
+            :icon="icon"
+            :pack="iconPack"
+            :size="size"
+            @click="iconClick('icon-click', $event)" />
+
         <select
             v-bind="$attrs"
             ref="selectRef"
@@ -273,15 +305,6 @@ const iconRightClasses = computed(() => [
         </select>
 
         <o-icon
-            v-if="icon"
-            :class="iconLeftClasses"
-            :clickable="iconClickable"
-            :icon="icon"
-            :pack="iconPack"
-            :size="size"
-            @click="iconClick('icon-click', $event)" />
-
-        <o-icon
             v-if="hasIconRight"
             :class="iconRightClasses"
             :clickable="iconRightClickable"
@@ -293,4 +316,3 @@ const iconRightClasses = computed(() => [
             @click="rightIconClick" />
     </div>
 </template>
-../field/useFieldMixin

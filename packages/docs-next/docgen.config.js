@@ -167,7 +167,7 @@ function tmplProps(props, name) {
                 return;
         }
         if(pr.tags?.ignore) return;
-
+        
         const n = pr.type?.name ? pr.type.name : "";
         let d = pr.defaultValue?.value ? pr.defaultValue.value : "";
         const v = pr.values ? pr.values.map((pv) => `\`${pv}\``).join(", ") : "-";
@@ -180,12 +180,10 @@ function tmplProps(props, name) {
             d.indexOf("if ") < 0 &&
             d.indexOf("else ") < 0
         ) {
-          
             let configParts = null;
-            let params = null;
             if(d.includes("getOptions")) {
                 // old components
-                params = d.substring(d.lastIndexOf("("), d.lastIndexOf(")"))
+                const params = d.substring(d.lastIndexOf("("), d.lastIndexOf(")"))
                     .replace(/\r\n/g, "")
                     .split(",");
                 if (params.length > 3) {
@@ -193,45 +191,48 @@ function tmplProps(props, name) {
                     params[2] = params.slice(2).join(",");
                 }
                 if (params[1]) {
-                    configParts = params[1].split(".");
+                    configParts = params[1].trim().split(".");
                 }
                 if (configParts && configParts[0] && configParts[1]) {
-                    const value = `${configParts[1].replace(/'/g, "")}: ${params[2]}`;
-                    d = `<div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>${configParts[0].replace(/'/g,"")}: {<br>&nbsp;&nbsp;${value}<br>}</code>`;
+                    const value = `${configParts[1].replace(/'|"/g, "")}: ${params[2]}`;
+                    d = `<div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>${configParts[0].replace(/'|"/g,"")}: {<br>&nbsp;&nbsp;${value}<br>}</code>`;
                 }
                 if (configParts && configParts.length == 1) {
-                    const value = `${configParts[0].replace(/'/g, "")}: ${params[2]}`;
+                    const value = `${configParts[0].replace(/'|"/g, "")}: ${params[2]}`;
                     d = `<div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp;${value}<br>}</code>`;
                 }
             } else {
                 // refactored components
-                params = d.substring(d.lastIndexOf("(") + 1, d.lastIndexOf(")"))
-                    .replace(/\r\n/g, "")
-                    .split(",");
+                const clear = (s) => s.replace(/'|"/g, "");
+                // get default params
+                let f = d.replace(/\r\n/g, "")
+                    .substring(d.lastIndexOf("getOption(") + "getOption(".length);
+                // remove function prop invokation
+               if(f.lastIndexOf('(') > 0) f = f.substring(0, f.lastIndexOf('('));
+               if(f.lastIndexOf(')') > 0) f = f.substring(0, f.lastIndexOf(')'));
+                const params = f.split(",");
                 if (params.length > 3) {
                     // In case last param contains a ','
                     params[2] = params.slice(2).join(",");
                 }
                 if (params[0]) {
-                    configParts = params[0].split(".");
+                    configParts = params[0].trim().split(".");
                 }
                 if (configParts && configParts[0] && configParts[1]) {
-                    const value = `${configParts[1].replace(/'|"/g, "")}: ${params[1]}`;
-                    d = `<div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>${configParts[0].replace(/'|"/g,"")}: {<br>&nbsp;&nbsp;${value}<br>}</code>`;
+                    const value = `${clear(configParts[1])}: ${params[1]}`;
+                    d = `<div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>${clear(configParts[0])}: {<br>&nbsp;&nbsp;${value}<br>}</code>`;
                 }
                 if (configParts && configParts.length == 1) {
-                    const value = `${configParts[0].replace(/'|"/g, "")}: ${params[1]}`;
+                    const value = `${clear(configParts[0])}: ${params[1]}`;
                     d = `<div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp;${value}<br>}</code>`;
                 }
             }
-        }
-        else if(d.includes("=>")) {
+        } else if(d.includes("=>")) {
             d = "Default function (see source code)";
         }
         else {
             d = `<code style='white-space: nowrap; padding: 0;'>${d}</code>`;
         }
-
 
         ret += `| ${mdclean(p)} | ${mdclean(t)} | ${mdclean(n)} | ${mdclean(v)} | ${d} |` + "\n";
     });
