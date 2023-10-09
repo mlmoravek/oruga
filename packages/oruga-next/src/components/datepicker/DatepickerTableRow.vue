@@ -9,20 +9,12 @@ import {
 } from "vue";
 import { useComputedClass } from "@/composables";
 import {
-<<<<<<< HEAD
-    useDatepickerMixins,
-    type DatepickerProps,
-    type DatepickerEvent,
-} from "./useDatepickerMixin";
-import { weeksInYear, firstWeekOffset } from "./datepickerUtils";
-=======
     useDatepickerShare,
     type DatepickerProps,
     type DatepickerEvent,
 } from "./useDatepickerShare";
 import { weeksInYear, firstWeekOffset } from "./datepickerUtils";
 import type { BindProp } from "@/types";
->>>>>>> develop
 
 defineOptions({
     name: "ODatepickerTableRow",
@@ -39,11 +31,7 @@ const props = defineProps({
     },
     events: { type: Array as PropType<DatepickerEvent[]>, default: undefined },
     hoveredDateRange: { type: Array as PropType<Date[]>, default: () => [] },
-<<<<<<< HEAD
-    datepickerProps: {
-=======
     pickerProps: {
->>>>>>> develop
         type: Object as PropType<DatepickerProps>,
         required: true,
     },
@@ -56,15 +44,9 @@ const emits = defineEmits<{
     (e: "week-number-click", value: number): void;
 }>();
 
-<<<<<<< HEAD
-const { isDateSelectable } = useDatepickerMixins(props);
-
-const datepicker = computed<DatepickerProps>(() => props.datepickerProps);
-=======
 const { isDateSelectable } = useDatepickerShare(props.pickerProps);
 
 const datepicker = computed<DatepickerProps>(() => props.pickerProps);
->>>>>>> develop
 
 const hasEvents = computed(() => !!props.events?.length);
 
@@ -169,13 +151,7 @@ function onKeydown(event: KeyboardEvent, weekDay: Date): void {
     if (preventDefault) event.preventDefault();
 }
 
-<<<<<<< HEAD
-/*
- * Emit select event with chosen date as payload
- */
-=======
 /** Emit select event with chosen date as payload */
->>>>>>> develop
 function selectDate(date: Date): void {
     if (datepicker.value.disabled) return;
     if (isDateSelectable(date, props.month)) emits("select", date);
@@ -201,15 +177,8 @@ function setRangeHoverEndDate(day): void {
 
 // --- Computed Component Classes ---
 
-<<<<<<< HEAD
-/*
- * Build cellClasses for cell using validations
- */
-function cellClasses(day) {
-=======
 /** Build cellClasses for cell using validations */
 function cellClasses(day: Date): BindProp {
->>>>>>> develop
     function dateMatch(dateOne, dateTwo, multiple = false): boolean {
         // if either date is null or undefined, return false
         // if using multiple flag, return false
@@ -350,11 +319,7 @@ function cellClasses(day: Date): BindProp {
     ];
 }
 
-<<<<<<< HEAD
-function eventClasses(event) {
-=======
 function eventClasses(event: DatepickerEvent): BindProp {
->>>>>>> develop
     return [
         useComputedClass("tableEventClass", "o-dpck__table__event"),
         {

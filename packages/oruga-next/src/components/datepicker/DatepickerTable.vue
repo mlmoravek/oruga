@@ -1,20 +1,5 @@
 <script setup lang="ts">
 import { computed, ref, type PropType } from "vue";
-<<<<<<< HEAD
-import { useComputedClass } from "@/composables";
-
-import ODatepickerTableRow from "./DatepickerTableRow.vue";
-
-import {
-    useDatepickerMixins,
-    type DatepickerProps,
-    type DatepickerEvent,
-    type FocusedDate,
-} from "./useDatepickerMixin";
-import { weekBuilder } from "./datepickerUtils";
-import { isDefined } from "@/utils/helpers";
-
-=======
 import ODatepickerTableRow from "./DatepickerTableRow.vue";
 import { useComputedClass } from "@/composables";
 import {
@@ -26,7 +11,6 @@ import {
 import { weekBuilder } from "./datepickerUtils";
 import { isDefined } from "@/utils/helpers";
 
->>>>>>> develop
 defineOptions({
     name: "ODatepickerTable",
     configField: "datepicker",
@@ -40,11 +24,7 @@ const props = defineProps({
     focusedDate: { type: Object as PropType<FocusedDate>, required: true },
     dayNames: { type: Array as PropType<string[]>, required: true },
     monthNames: { type: Array as PropType<string[]>, required: true },
-<<<<<<< HEAD
-    datepickerProps: {
-=======
     pickerProps: {
->>>>>>> develop
         type: Object as PropType<DatepickerProps>,
         required: true,
     },
@@ -60,21 +40,13 @@ const emits = defineEmits<{
     (e: "week-number-click", value: number): void;
 }>();
 
-<<<<<<< HEAD
-const { isDateSelectable } = useDatepickerMixins(props.datepickerProps);
-=======
 const { isDateSelectable } = useDatepickerShare(props.pickerProps);
->>>>>>> develop
 
 const selectedBeginDate = ref<Date>();
 const selectedEndDate = ref<Date>();
 const hoveredEndDate = ref<Date>();
 
-<<<<<<< HEAD
-const datepicker = computed<DatepickerProps>(() => props.datepickerProps);
-=======
 const datepicker = computed<DatepickerProps>(() => props.pickerProps);
->>>>>>> develop
 
 const visibleDayNames = computed(() => {
     const visibleDayNames = [];
@@ -112,16 +84,12 @@ const weeksInThisMonth = computed(() => {
     let startingDay = 1;
 
     while (weeksInThisMonth.length < 6) {
-<<<<<<< HEAD
-        const newWeek = weekBuilder(startingDay, month, year);
-=======
         const newWeek = weekBuilder(
             startingDay,
             month,
             year,
             datepicker.value.firstDayOfWeek,
         );
->>>>>>> develop
         weeksInThisMonth.push(newWeek);
         startingDay += 7;
     }
@@ -129,11 +97,6 @@ const weeksInThisMonth = computed(() => {
     return weeksInThisMonth;
 });
 
-<<<<<<< HEAD
-const hoveredDateRange = computed(() => {
-    if (!datepicker.value.range || !selectedEndDate.value) return [];
-
-=======
 function eventsInThisWeek(week: Date[]): DatepickerEvent[] {
     if (!datepicker.value.events) return [];
     return eventsInThisMonth.value.filter((event) => {
@@ -146,7 +109,6 @@ function eventsInThisWeek(week: Date[]): DatepickerEvent[] {
 
 const hoveredDateRange = computed(() => {
     if (!datepicker.value.range || selectedEndDate.value) return [];
->>>>>>> develop
     return (
         hoveredEndDate.value < selectedBeginDate.value
             ? [hoveredEndDate.value, selectedBeginDate.value]
@@ -189,18 +151,6 @@ function validateFocusedDay(): void {
     }
 }
 
-<<<<<<< HEAD
-function eventsInThisWeek(week: Date[]): DatepickerEvent[] {
-    return eventsInThisMonth.value.filter((event) => {
-        const stripped = new Date(event.date);
-        stripped.setHours(0, 0, 0, 0);
-        const timed = stripped.getTime();
-        return week.some((weekDate) => weekDate.getTime() === timed);
-    });
-}
-
-=======
->>>>>>> develop
 // --- Events ---
 
 /** Emit input event with selected date as payload for v-model in parent */
@@ -324,11 +274,7 @@ const tableBodyClasses = computed(() => [
                 :month="focusedDate.month"
                 :events="eventsInThisWeek(week)"
                 :hovered-date-range="hoveredDateRange"
-<<<<<<< HEAD
-                :datepicker-props="props"
-=======
                 :picker-props="props.pickerProps"
->>>>>>> develop
                 @select="onSelectedDate"
                 @hover-enddate="onRangeHoverEndDate"
                 @change-focus="onChangeFocus"

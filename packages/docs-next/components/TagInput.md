@@ -30,6 +30,8 @@ title: TagInput
 
 ## TagInput component
 
+> A simple tag input field that can have autocomplete functionality
+
 ```html
 <o-tag-input></o-tag-input>
 ```
@@ -62,28 +64,28 @@ title: TagInput
 | keepFirst           | The first option will always be pre-selected (easier to just hit enter or tab)                                                                                         | boolean                       | -                                                                               | <code style='white-space: nowrap; padding: 0;'>false</code>                                                                                                    |
 | maxitems            | Limits the number of items, plus item counter                                                                                                                          | number                        | -                                                                               |                                                                                                                                                                |
 | maxlength           | Same as native maxlength, plus character counter                                                                                                                       | number                        | -                                                                               |                                                                                                                                                                |
-| openOnFocus         | Opens a dropdown with choices when the input field is focused                                                                                                          | boolean                       | -                                                                               | <code style='white-space: nowrap; padding: 0;'>false</code>                                                                                                    |
+| openOnFocus         |                                                                                                                                                                        | boolean                       | -                                                                               | <code style='white-space: nowrap; padding: 0;'>false</code>                                                                                                    |
 | pasteSeparators     | Array of chars used to split when pasting a new string                                                                                                                 | string[]                      | -                                                                               | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>taginput: {<br>&nbsp;&nbsp;pasteSeparators: ["<br>}</code>         |
 | removeOnKeys        | Allow removing last item when pressing given keys, if input is empty                                                                                                   | array                         | -                                                                               | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>taginput: {<br>&nbsp;&nbsp;removeOnKeys: ["Backspace"]<br>}</code> |
-| size                | Vertical size of input, optional                                                                                                                                       | string                        | `small`, `medium`, `large`                                                      | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>taginput: {<br>&nbsp;&nbsp;size: undefined<br>}</code>             |
+| size                | Vertical size of the input control, optional                                                                                                                           | string                        | `small`, `medium`, `large`                                                      | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>taginput: {<br>&nbsp;&nbsp;size: undefined<br>}</code>             |
 | useHtml5Validation  | Enable html 5 native validation                                                                                                                                        | boolean                       | -                                                                               | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>{<br>&nbsp;&nbsp;useHtml5Validation: true<br>}</code>              |
 | v-model             |                                                                                                                                                                        | array                         | -                                                                               | <code style='white-space: nowrap; padding: 0;'>[]</code>                                                                                                       |
 | variant             | Color of the each items, optional                                                                                                                                      | string                        | `primary`, `info`, `success`, `warning`, `danger`, `and any other custom color` | <div><small>From <b>config</b>:</small></div><code style='white-space: nowrap; padding: 0;'>taginput: {<br>&nbsp;&nbsp;variant: undefined<br>}</code>          |
 
 ### Events
 
-| Event name        | Properties | Description                     |
-| ----------------- | ---------- | ------------------------------- |
-| infinite-scroll   |            |
-| icon-right-click  |            | on icon right click event       |
-| update:modelValue |            | modelValue prop two-way binding |
-| input             |            | on input change event           |
-| add               |            |
-| remove            |            |
-| focus             |            | on input focus event            |
-| blur              |            | on input blur event             |
-| invalid           |            | on input invalid event          |
-| icon-click        |            | on icon click event             |
+| Event name        | Properties | Description                                          |
+| ----------------- | ---------- | ---------------------------------------------------- |
+| infinite-scroll   |            | the scroll list inside the dropdown reached it's end |
+| icon-click        |            | on icon click event                                  |
+| icon-right-click  |            | on icon right click event                            |
+| update:modelValue |            | modelValue prop two-way binding                      |
+| input             |            | on input change event                                |
+| add               |            | new item got added                                   |
+| remove            |            | item got removed                                     |
+| focus             |            | on input focus event                                 |
+| blur              |            | on input blur event                                  |
+| invalid           |            | on input invalid event                               |
 
 ### Slots
 

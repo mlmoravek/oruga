@@ -7,7 +7,7 @@ import { VueInstance } from "@/utils/config";
 import { merge } from "@/utils/helpers";
 import {
     registerComponent,
-    registerProgrammaticComponent,
+    registerComponentProgrammatic,
 } from "@/utils/plugins";
 import InstanceRegistry from "@/utils/InstanceRegistry";
 
@@ -47,7 +47,6 @@ const ModalProgrammatic = {
             propsData.programmatic.resolve = p1;
             propsData.programmatic.reject = p2;
         });
-        const defaultSlot = () => slot;
 
         const defaultSlot = () => slot;
         const app = localVueInstance || VueInstance;
@@ -65,7 +64,7 @@ export default {
     install(app: App) {
         localVueInstance = app;
         registerComponent(app, Modal);
-        registerProgrammaticComponent(app, "modal", ModalProgrammatic);
+        registerComponentProgrammatic(app, "modal", ModalProgrammatic);
     },
 } as Plugin;
 
