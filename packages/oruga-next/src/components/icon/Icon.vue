@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { computed, type Component, type PropType } from "vue";
+import { computed } from "vue";
 
-import getIcons from "@/utils/icons";
+import { baseComponentProps } from "@/utils/SharedProps";
 import { getOption } from "@/utils/config";
 import { useComputedClass, useClassProps } from "@/composables";
-import { baseComponentProps } from "@/mixins/SharedProps";
+import getIcons from "../../utils/icons";
 
 /**
  * Icons take an important role of any application
@@ -20,25 +20,19 @@ defineOptions({
 const props = defineProps({
     // add global shared props (will not be displayed in the docs)
     ...baseComponentProps,
-    /**
-     * Set a specific icon component
-     */
+    /** Icon component name */
     component: {
-        type: [String, Object, Function] as PropType<string | Component>,
-        default: undefined,
+        type: String,
+        default: () => getOption("iconComponent"),
     },
     /**
-     * The icon pack to use
+     * Icon pack to use
      * @values mdi, fa, fas and any other custom icon pack
      */
     pack: {
         type: String,
-        default: () => getOption("icon.pack"),
+        default: () => getOption("iconPack", "mdi"),
     },
-    /**
-     * The icon name to use
-     */
-    icon: { type: String, default: undefined },
     /**
      * 	Color of the icon, optional
      *  @values primary, info, success, warning, danger, and any other custom color
@@ -47,40 +41,36 @@ const props = defineProps({
         type: String,
         default: () => getOption("icon.variant"),
     },
+    /** Icon name */
+    icon: { type: String, default: undefined },
     /**
-     * Icon size by pack, optional
+     * Icon size, optional
      * @values small, medium, large
      */
     size: {
         type: String,
-        default: () => getOption("icon.size"),
+        default: () => getOption("icon.size", undefined),
+        validator: (value: string) =>
+            ["small", "medium", "large", undefined].indexOf(value) >= 0,
     },
     /**
      * Overrides icon font size, optional
      * @values Depends on library: null (smallest), fa-lg, fa-2x, fa-3x, fa-4x, fa-5x, mdi-18px, mdi-24px, mdi-36px, mdi-48px
      */
     customSize: { type: String, default: undefined },
-    /**
-     * Add a custom class to icon font, optional
-     */
+    /** Add class to icon font, optional. See here for MDI, here for FontAwesome 4 and here for FontAwesome 5 custom classes */
     customClass: { type: String, default: undefined },
-    /**
-     * Makes the icon clickable
-     */
+    /** When true makes icon clickable */
     clickable: { type: Boolean, default: false },
-    /**
-     * Enable spin effect
-     */
+    /** Enable spin effect on icon */
     spin: { type: Boolean, default: false },
-    /**
-     * Icon Rotation 0-360
-     */
+    /** Rotation 0-360 */
     rotation: { type: [Number, String], default: undefined },
     /**
      * This is used internally
      * @ignore
      */
-    both: { type: Boolean, default: false },
+    both: Boolean,
     // add class props (will not be displayed in the docs)
     ...useClassProps([
         "rootClass",
@@ -91,15 +81,30 @@ const props = defineProps({
     ]),
 });
 
-const rootStyle = computed(() =>
-    props.rotation ? { transform: `rotate(${props.rotation}deg)` } : {},
-);
+const rootStyle = computed(() => {
+    const style = {};
+    if (props.rotation) {
+        style["transform"] = `rotate(${props.rotation}deg)`;
+    }
+    return style;
+});
 
-const iconConfig = computed(() => getIcons()[computedPack.value]);
+const iconConfig = computed(() => getIcons()[props.pack]);
 
 const iconPrefix = computed(() =>
     iconConfig.value?.iconPrefix ? iconConfig.value.iconPrefix : "",
 );
+
+const customSizeByPack = computed(() => {
+    if (iconConfig.value?.sizes) {
+        if (props.size && iconConfig.value.sizes[props.size] !== undefined) {
+            return iconConfig.value.sizes[props.size];
+        } else if (iconConfig.value.sizes.default) {
+            return iconConfig.value.sizes.default;
+        }
+    }
+    return null;
+});
 
 /**
  * Internal icon name based on the pack.
@@ -110,7 +115,7 @@ const computedIcon = computed(
     () => `${iconPrefix.value}${getEquivalentIconOf(props.icon)}`,
 );
 
-const computedPack = computed(() => props.pack || getOption("iconPack", "mdi"));
+const computedSize = computed(() => props.customSize || customSizeByPack.value);
 
 const computedVariant = computed(() => {
     if (!props.variant) return;
@@ -125,45 +130,19 @@ const computedVariant = computed(() => {
     return newVariant;
 });
 
-const computedCustomSize = computed(
-    () => props.customSize || customSizeByPack.value,
-);
-
-const customSizeByPack = computed(() => {
-    if (iconConfig.value?.sizes) {
-        if (props.size && iconConfig.value.sizes[props.size] !== undefined) {
-            return iconConfig.value.sizes[props.size];
-        } else if (iconConfig.value.sizes.default) {
-            return iconConfig.value.sizes.default;
-        }
-    }
-    return null;
-});
-
-const iconComponent = computed(() => {
-    if (props.component) return props.component;
-    const component = getOption("iconComponent");
-    if (component) return component;
-    return null;
-});
-
-/**
- * Equivalent icon name of the MDI.
- */
-function getEquivalentIconOf(value) {
+/** Equivalent icon name of the MDI. */
+function getEquivalentIconOf(value): string {
     // Only transform the class if the both prop is set to true
     if (!props.both) return value;
-
     if (
         iconConfig.value?.internalIcons &&
         iconConfig.value?.internalIcons[value]
     )
         return iconConfig.value.internalIcons[value];
-
     return value;
 }
 
-// --- Computed Classes ---
+// --- Computed Component Classes ---
 
 const rootClasses = computed(() => [
     useComputedClass("rootClass", "o-icon"),
@@ -188,18 +167,13 @@ const rootClasses = computed(() => [
     <span :class="rootClasses" :style="rootStyle">
         <!-- custom icon component -->
         <component
-            :is="iconComponent"
-            v-if="iconComponent"
-            :icon="[computedPack, computedIcon]"
-            :size="computedCustomSize"
+            :is="component"
+            v-if="component"
+            :icon="[pack, computedIcon]"
+            :size="computedSize"
             :class="[customClass]" />
-        <i
-            v-else
-            :class="[
-                computedPack,
-                computedIcon,
-                computedCustomSize,
-                customClass,
-            ]" />
+
+        <!-- native css icon -->
+        <i v-else :class="[pack, computedIcon, computedSize, customClass]" />
     </span>
 </template>

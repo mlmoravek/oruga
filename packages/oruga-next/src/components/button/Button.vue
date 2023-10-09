@@ -3,7 +3,7 @@ import { computed, type Component, type PropType } from "vue";
 
 import OIcon from "../icon/Icon.vue";
 
-import { baseComponentProps } from "@/mixins/SharedProps";
+import { baseComponentProps } from "@/utils/SharedProps";
 import { getOption } from "@/utils/config";
 import { useComputedClass, useClassProps } from "@/composables";
 
@@ -22,84 +22,75 @@ const props = defineProps({
     // add global shared props (will not be displayed in the docs)
     ...baseComponentProps,
     /**
-     * Html tag name
+     * Button tag name
      * @values button, a, input, router-link, nuxt-link (or other nuxt alias)
      */
     tag: {
         type: [String, Object, Function] as PropType<string | Component>,
         default: "button",
     },
-    /** Button label, optional when default slot */
-    label: { type: String, default: undefined },
     /**
-     * Color of the control, optional
+     * Color variant of the control, optional
      * @values primary, info, success, warning, danger, and any other custom color
      */
     variant: {
         type: String,
         default: () => getOption("button.variant"),
     },
-    /** Invert the variant */
-    inverted: {
-        type: Boolean,
-        default: () => getOption("button.inverted"),
-    },
     /**
-     * Size of the control
+     * Size of the control, optional
      * @values small, medium, large
      */
     size: {
         type: String,
         default: () => getOption("button.size"),
     },
-    /** Enable rounded style */
-    rounded: {
-        type: Boolean,
-        default: () => getOption("button.rounded", false),
-    },
-    /** Enable outlined style */
-    outlined: {
-        type: Boolean,
-        default: () => getOption("button.outlined", false),
-    },
+    /** Button label, unnecessary when default slot is used */
+    label: { type: String, default: undefined },
     /**
      * Icon pack to use
      * @values mdi, fa, fas and any other custom icon pack
      */
+
     iconPack: {
         type: String,
-        default: () => getOption("button.iconPack"),
+        default: () => getOption("button.iconPack", undefined),
     },
-    /** Icon name to show on the left side */
+    /** Icon name to show on the left */
     iconLeft: { type: String, default: undefined },
-    /** Icon name to show on the right side */
+    /** Icon name to show on the right */
     iconRight: { type: String, default: undefined },
+    /** Rounded style */
+    rounded: {
+        type: Boolean,
+        default: () => getOption("button.rounded", false),
+    },
+    /** Button will be expanded (full-width) */
+    expanded: { type: Boolean, default: false },
+    /** Button will be disabled */
+    disabled: { type: Boolean, default: false },
+    /** Enable outlined style */
+    outlined: { type: Boolean, default: false },
+    /** Enable loading style */
+    loading: { type: Boolean, default: false },
+    /** Enable inverted style */
+    inverted: { type: Boolean, default: false },
+    /** Button type, like native */
+    nativeType: {
+        type: String,
+        default: "button",
+        validator: (value: string) =>
+            ["button", "submit", "reset"].indexOf(value) >= 0,
+    },
     /**
      * This is used internally
      * @ignore
      */
     iconBoth: { type: Boolean, default: false },
-    /** Enable loading state */
-    loading: { type: Boolean, default: false },
-    /** Enable disabled state */
-    disabled: { type: Boolean, default: false },
-    /** Button will be expanded (full-width) */
-    expanded: { type: Boolean, default: false },
-    /**
-     * Native html type, like native
-     * @values button, submit, reset
-     */
-    nativeType: {
-        type: String,
-        default: "button",
-        validator: (value: string) => {
-            return ["button", "submit", "reset"].indexOf(value) >= 0;
-        },
-    },
     // add class props (will not be displayed in the docs)
     ...useClassProps([
-        "rootClass",
         "elementsWrapperClass",
+        "rootClass",
         "outlinedClass",
         "loadingClass",
         "invertedClass",
@@ -127,7 +118,7 @@ const computedNativeType = computed(() =>
 
 const computedDisabled = computed(() => (props.disabled ? true : null));
 
-// --- Computed Classes ---
+// --- Computed Component Classes ---
 
 const rootClasses = computed(() => [
     useComputedClass("rootClass", "o-btn"),
@@ -143,12 +134,12 @@ const rootClasses = computed(() => [
             props.outlined && !props.variant,
     },
     {
-        [useComputedClass("outlinedClass", "o-btn--outlined-", props.variant)]:
-            props.outlined && props.variant,
-    },
-    {
         [useComputedClass("invertedClass", "o-btn--inverted")]:
             props.inverted && !props.variant,
+    },
+    {
+        [useComputedClass("outlinedClass", "o-btn--outlined-", props.variant)]:
+            props.outlined && props.variant,
     },
     {
         [useComputedClass("invertedClass", "o-btn--inverted-", props.variant)]:
@@ -205,11 +196,9 @@ const elementsWrapperClasses = computed(() => [
                 :size="size"
                 :both="iconBoth"
                 :class="iconLeftClasses" />
-
             <span v-if="label || $slots.default" :class="labelClasses">
                 <slot>{{ label }}</slot>
             </span>
-
             <o-icon
                 v-if="iconRight"
                 :pack="iconPack"
