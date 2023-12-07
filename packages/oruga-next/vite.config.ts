@@ -3,8 +3,7 @@ import vue from "@vitejs/plugin-vue";
 import tsconfigPaths from "vite-tsconfig-paths";
 import istanbul from "vite-plugin-istanbul";
 import dts from "vite-plugin-dts";
-
-import babel from "@rollup/plugin-babel";
+import babel from "vite-plugin-babel";
 
 import { peerDependencies, version } from "./package.json";
 
@@ -104,7 +103,9 @@ export default defineConfig(({ mode }) => ({
             // rollup plugins
             plugins: [
                 babel({
-                    babelHelpers: "bundled",
+                    babelConfig: {
+                        babelHelpers: "bundled",
+                    },
                 }),
             ],
         },
