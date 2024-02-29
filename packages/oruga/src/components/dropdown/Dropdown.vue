@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="T">
 import { computed, nextTick, ref, watch, type PropType } from "vue";
 
 import PositionWrapper from "../utils/PositionWrapper.vue";
@@ -37,13 +37,15 @@ const props = defineProps({
     override: { type: Boolean, default: undefined },
     /** @model */
     modelValue: {
-        type: [String, Number, Boolean, Object, Array],
+        type: [String, Number, Boolean, Object, Array] as PropType<T | T[]>,
         default: undefined,
     },
     /** The active state of the dropdown, use v-model:active to make it two-way binding. */
     active: { type: Boolean, default: false },
     /** Trigger label, unnecessary when trgger slot is used */
     label: { type: String, default: undefined },
+    /** Allows multiple selections */
+    multiple: { type: Boolean, default: false },
     /** Dropdown is disabled */
     disabled: { type: Boolean, default: false },
     /** Dropdown content (items) are shown inline, trigger is removed */
@@ -85,8 +87,6 @@ const props = defineProps({
         type: String,
         default: () => getOption("dropdown.animation", "fade"),
     },
-    /** Allows multiple selections */
-    multiple: { type: Boolean, default: false },
     /** Trap focus inside the dropdown. */
     trapFocus: {
         type: Boolean,
@@ -242,12 +242,9 @@ const props = defineProps({
 const emits = defineEmits<{
     /**
      * modelValue prop two-way binding
-     * @param value {[String, Number, Boolean, Object, Array]} updated modelValue prop
+     * @param value {typeof modelValue} updated modelValue prop
      */
-    (
-        e: "update:modelValue",
-        value: [string, number, boolean, object, Array<any>],
-    ): void;
+    (e: "update:modelValue", value: T | T[]): void;
     /**
      * active prop two-way binding
      * @param value {boolean} updated active prop
@@ -255,9 +252,9 @@ const emits = defineEmits<{
     (e: "update:active", value: boolean): void;
     /**
      * on change event - fired after modelValue:update
-     * @param value {any} selected value
+     * @param value {typeof modelValue} selected value
      */
-    (e: "change", value: any): void;
+    (e: "change", value: T | T[]): void;
     /**
      * on close event
      * @param method {string} close method
@@ -269,7 +266,7 @@ const emits = defineEmits<{
     (e: "scroll-end"): void;
 }>();
 
-const vmodel = defineModel<any>();
+const vmodel = defineModel<T | T[]>();
 
 const isActive = defineModel<boolean>("active");
 
@@ -455,7 +452,7 @@ function checkDropdownScroll(): void {
  *   2. Emit input event to update the user v-model.
  *   3. Close the dropdown.
  */
-function selectItem(value: any): void {
+function selectItem(value: T): void {
     if (props.multiple) {
         if (vmodel.value && Array.isArray(vmodel.value)) {
             if (vmodel.value.indexOf(value) === -1) {
@@ -486,7 +483,7 @@ function selectItem(value: any): void {
 }
 
 // Provided data is a computed ref to enjure reactivity.
-const provideData = computed<DropdownComponent>(() => ({
+const provideData = computed<DropdownComponent<T>>(() => ({
     props,
     selected: vmodel.value,
     selectItem,

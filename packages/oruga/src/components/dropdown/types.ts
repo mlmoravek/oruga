@@ -6,6 +6,6 @@ export type DropdownProps = ComponentProps<typeof Dropdown>;
 
 export type DropdownComponent<T = unknown> = {
     props: DropdownProps;
-    selected: T[];
+    selected: T | T[];
     selectItem: (value: T) => void;
 };
