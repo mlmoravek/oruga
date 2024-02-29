@@ -1,5 +1,7 @@
 import type { Component } from "vue";
 
+export type Any = string | number | boolean | object | Array<unknown>;
+
 export type ClassBind = {
     [x: string]: boolean;
 };
