@@ -1,4 +1,4 @@
-<script setup lang="ts" generic="T">
+<script setup lang="ts">
 import { computed, nextTick, ref, watch, type PropType } from "vue";
 
 import PositionWrapper from "../utils/PositionWrapper.vue";
@@ -37,7 +37,7 @@ const props = defineProps({
     override: { type: Boolean, default: undefined },
     /** @model */
     modelValue: {
-        type: [String, Number, Boolean, Object, Array] as PropType<T | T[]>,
+        type: [String, Number, Boolean, Object, Array],
         default: undefined,
     },
     /** The active state of the dropdown, use v-model:active to make it two-way binding. */
@@ -244,7 +244,7 @@ const emits = defineEmits<{
      * modelValue prop two-way binding
      * @param value {typeof modelValue} updated modelValue prop
      */
-    (e: "update:modelValue", value: T | T[]): void;
+    (e: "update:modelValue", value: typeof props.modelValue): void;
     /**
      * active prop two-way binding
      * @param value {boolean} updated active prop
@@ -254,7 +254,7 @@ const emits = defineEmits<{
      * on change event - fired after modelValue:update
      * @param value {typeof modelValue} selected value
      */
-    (e: "change", value: T | T[]): void;
+    (e: "change", value: typeof props.modelValue): void;
     /**
      * on close event
      * @param method {string} close method
@@ -266,7 +266,7 @@ const emits = defineEmits<{
     (e: "scroll-end"): void;
 }>();
 
-const vmodel = defineModel<T | T[]>();
+const vmodel = defineModel<typeof props.modelValue>();
 
 const isActive = defineModel<boolean>("active");
 
@@ -452,7 +452,7 @@ function checkDropdownScroll(): void {
  *   2. Emit input event to update the user v-model.
  *   3. Close the dropdown.
  */
-function selectItem(value: T): void {
+function selectItem(value: typeof vmodel.value): void {
     if (props.multiple) {
         if (vmodel.value && Array.isArray(vmodel.value)) {
             if (vmodel.value.indexOf(value) === -1) {
@@ -483,7 +483,7 @@ function selectItem(value: T): void {
 }
 
 // Provided data is a computed ref to enjure reactivity.
-const provideData = computed<DropdownComponent<T>>(() => ({
+const provideData = computed<DropdownComponent<typeof vmodel.value>>(() => ({
     props,
     selected: vmodel.value,
     selectItem,

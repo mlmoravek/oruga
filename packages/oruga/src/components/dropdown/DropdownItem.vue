@@ -1,4 +1,4 @@
-<script setup lang="ts" generic="T = string">
+<script setup lang="ts">
 import { computed, type ComputedRef, type PropType } from "vue";
 
 import { getOption } from "@/utils/config";
@@ -20,7 +20,7 @@ defineOptions({
 const props = defineProps({
     /** The value that will be returned on events and v-model - default is a uuid */
     value: {
-        type: [String, Number, Boolean, Object, Array] as PropType<T>,
+        type: [String, Number, Boolean, Object, Array],
         default: undefined,
     },
     /** Item label, unnecessary when default slot is used */
@@ -74,13 +74,14 @@ const emits = defineEmits<{
      * @param value {typeof value} value prop data
      * @param event {event} Native Event
      */
-    (e: "click", value: T, event: Event): void;
+    (e: "click", value: typeof props.value, event: Event): void;
 }>();
 
-const itemValue = (props.value || uuid()) as T;
+const itemValue = props.value || uuid();
 
 // Inject functionalities and data from the parent component
-const { parent } = useProviderChild<ComputedRef<DropdownComponent<T>>>();
+const { parent } =
+    useProviderChild<ComputedRef<DropdownComponent<typeof props.value>>>();
 
 const isClickable = computed(
     () => !parent.value.props.disabled && !props.disabled && props.clickable,
