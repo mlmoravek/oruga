@@ -8,7 +8,6 @@ import {
     useSlots,
     toValue,
     type PropType,
-    type ComputedRef,
 } from "vue";
 
 import OCheckbox from "../checkbox/Checkbox.vue";
@@ -709,13 +708,15 @@ const rootRef = ref<HTMLElement>();
 const slotRef = ref<HTMLElement>();
 
 /** Provide functionalities and data to child item components */
-const provider = useProviderParent<ComputedRef<TableColumnComponent>>(slotRef);
+const provider = useProviderParent<TableColumnComponent>(slotRef);
 
 const tableColumns = computed<TableColumn[]>(() =>
     provider.sortedItems.value.map((column) => ({
         index: column.index,
         identifier: column.identifier,
         ...toValue(column.data),
+        thAttrsData: {},
+        tdAttrsData: [],
     })),
 );
 
@@ -793,17 +794,19 @@ const visibleRows = computed(() => {
 });
 
 const visibleColumns = computed(() => {
-    if (!tableColumns.value) return tableColumns.value;
-    return tableColumns.value.filter((column) => {
-        return column.visible || column.visible === undefined;
-    });
+    if (!tableColumns.value) return [];
+    return tableColumns.value.filter(
+        (column) => column.visible || column.visible === undefined,
+    );
 });
 
-watch([() => visibleRows.value, () => visibleColumns.value], () => {
-    // process tdAttrs when row or columns got changed
+/** process thAttrs & tdAttrs when row or columns got changed */
+watch([visibleRows, visibleColumns], () => {
     if (visibleColumns.value.length && visibleRows.value.length) {
         for (let i = 0; i < visibleColumns.value.length; i++) {
             const col = visibleColumns.value[i];
+            col.thAttrsData =
+                typeof col.thAttrs === "function" ? col.thAttrs(col) : {};
             col.tdAttrsData = visibleRows.value.map((data) =>
                 typeof col.tdAttrs === "function" ? col.tdAttrs(data, col) : {},
             );
@@ -1808,7 +1811,9 @@ function tdClasses(row: unknown, column: TableColumnComponent): ClassBind[] {
                                     tag="span"
                                     :props="{ column, index }" />
                             </template>
-                            <template v-else>{{ column.subheading }}</template>
+                            <template v-else>
+                                {{ column.subheading }}
+                            </template>
                         </th>
                         <th v-if="checkable && checkboxPosition === 'right'" />
                     </tr>
