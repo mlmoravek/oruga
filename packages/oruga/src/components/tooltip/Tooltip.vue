@@ -7,7 +7,6 @@ import { getOption } from "@/utils/config";
 import { isClient } from "@/utils/ssr";
 import {
     defineClasses,
-    usePropBinding,
     useEventListener,
     useClickOutside,
 } from "@/composables";
@@ -175,9 +174,7 @@ const emits = defineEmits<{
     (e: "open"): void;
 }>();
 
-const isActive = usePropBinding<boolean>("active", props, emits, {
-    passive: true,
-});
+const isActive = defineModel<boolean>("active", { default: false });
 
 watch(isActive, (value) => {
     if (value) emits("open");
@@ -208,7 +205,11 @@ watch(isActive, (value) => {
             if (cancelOptions.value.indexOf("outside") >= 0) {
                 // set outside handler
                 eventCleanups.value.push(
-                    useClickOutside(contentRef, onClickedOutside, [triggerRef]),
+                    useClickOutside(contentRef, onClickedOutside, {
+                        ignore: [triggerRef],
+                        immediate: true,
+                        passive: true,
+                    }),
                 );
             }
 
@@ -354,17 +355,17 @@ const contentClasses = defineClasses(
 <template>
     <div :class="rootClasses" data-oruga="tooltip">
         <PositionWrapper
+            v-slot="{ setContent }"
             v-model:position="autoPosition"
             :teleport="teleport"
             :class="rootClasses"
             :trigger="triggerRef"
-            :content="contentRef"
             default-position="top"
             :disabled="!isActive">
             <transition :name="animation">
                 <div
                     v-show="isActive || (always && !disabled)"
-                    ref="contentRef"
+                    :ref="(el) => (contentRef = setContent(el as HTMLElement))"
                     :class="contentClasses">
                     <span :class="arrowClasses"></span>
 
@@ -375,6 +376,7 @@ const contentClasses = defineClasses(
                 </div>
             </transition>
         </PositionWrapper>
+
         <component
             :is="triggerTag"
             ref="triggerRef"

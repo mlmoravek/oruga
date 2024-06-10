@@ -1,3 +1,5 @@
+import { Comment, Fragment, Text } from "vue";
+
 /**
  * Generates a random string
  */
@@ -34,6 +36,9 @@ export function bound(val: number, min: number, max: number): number {
 export const isObject = <T>(obj: T): boolean =>
     obj && typeof obj === "object" && !Array.isArray(obj);
 
+export const isDate = (d: unknown): d is Date =>
+    d && d instanceof Date && !isNaN(d.getTime());
+
 export const isDefined = <T>(d: T): boolean => d !== null && d !== undefined;
 
 export const blankIfUndefined = (value: string): string =>
@@ -58,6 +63,45 @@ export function indexOf<T>(
     if (!array) return -1;
     if (!fn || typeof fn !== "function") return array.indexOf(obj);
     return array.findIndex((value, index, arr) => fn(value, arr));
+}
+
+/**
+ * Sort an array by key without mutating original data.
+ * Call the user sort function if it was passed.
+ */
+export function sortBy<T>(
+    array: T[],
+    key: string,
+    fn: (a: T, b: T, asc: boolean) => number,
+    isAsc: boolean,
+): T[] {
+    let sorted = [];
+    // Sorting without mutating original data
+    if (fn && typeof fn === "function") {
+        sorted = [...array].sort((a, b) => fn(a, b, isAsc));
+    } else {
+        sorted = [...array].sort((a, b) => {
+            // Get nested values from objects
+            let newA = getValueByPath(a, key);
+            let newB = getValueByPath(b, key);
+
+            // sort boolean type
+            if (typeof newA === "boolean" && typeof newB === "boolean") {
+                return isAsc ? (newA > newB ? 1 : -1) : newA > newB ? -1 : 1;
+            }
+
+            if (!newA && newA !== 0) return 1;
+            if (!newB && newB !== 0) return -1;
+            if (newA === newB) return 0;
+
+            newA = typeof newA === "string" ? newA.toUpperCase() : newA;
+            newB = typeof newB === "string" ? newB.toUpperCase() : newB;
+
+            return isAsc ? (newA > newB ? 1 : -1) : newA > newB ? -1 : 1;
+        });
+    }
+
+    return sorted;
 }
 
 /**
@@ -105,6 +149,20 @@ export function isEqual(valueA: unknown, valueB: unknown): boolean {
     }
 
     return false;
+}
+
+/**
+ * Returns true if it is a DOM element
+ * @source https://stackoverflow.com/questions/384286/how-do-you-check-if-a-javascript-object-is-a-dom-object
+ */
+export function isElement(o: any): boolean {
+    return typeof HTMLElement === "object"
+        ? o instanceof HTMLElement //DOM2
+        : o &&
+              typeof o === "object" &&
+              o !== null &&
+              o.nodeType === 1 &&
+              typeof o.nodeName === "string";
 }
 
 /**
@@ -223,6 +281,15 @@ export function escapeRegExpChars(value: string): string {
 export function removeDiacriticsFromString(value: string): string {
     if (!value) return value;
     return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+/** checks if a vue vnode is empty */
+export function isVNodeEmpty(vnode): boolean {
+    if (!vnode) return true;
+    if (vnode.type === Comment) return true;
+    if (vnode.type === Text && !vnode.children.trim()) return true;
+    if (vnode.type === Fragment && isVNodeEmpty(vnode.children)) return true;
+    return false;
 }
 
 /**

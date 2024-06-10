@@ -5,13 +5,9 @@ import OIcon from "../icon/Icon.vue";
 
 import { getOption } from "@/utils/config";
 import { uuid } from "@/utils/helpers";
-import {
-    defineClasses,
-    useVModelBinding,
-    useInputHandler,
-} from "@/composables";
+import { defineClasses, useInputHandler } from "@/composables";
 
-import { injectField } from "../field/useFieldShare";
+import { injectField } from "../field/fieldInjection";
 
 import type { OptionsItem } from "./types";
 import type { ComponentClass } from "@/types";
@@ -93,8 +89,8 @@ const props = defineProps({
     iconRightClickable: { type: Boolean, default: false },
     /** Variant of right icon */
     iconRightVariant: { type: String, default: undefined },
-    /** Accessibility label to establish relationship between the input and control label */
-    ariaLabelledby: { type: String, default: () => uuid() },
+    /** Same as native id. Also set the for label for o-field wrapper. */
+    id: { type: String, default: () => uuid() },
     /** Enable html 5 native validation */
     useHtml5Validation: {
         type: Boolean,
@@ -235,9 +231,9 @@ const { checkHtml5Validity, onBlur, onFocus, onInvalid, setFocus } =
 // inject parent field component if used inside one
 const { parentField, statusVariant, statusVariantIcon } = injectField();
 
-const vmodel = useVModelBinding<
-    string | number | boolean | object | Array<any>
->(props, emits, { passive: true });
+const vmodel = defineModel<string | number | boolean | object | Array<unknown>>(
+    { default: undefined },
+);
 
 const placeholderVisible = computed(() => vmodel.value === null);
 
@@ -374,6 +370,7 @@ defineExpose({ focus: setFocus });
 
         <select
             v-bind="$attrs"
+            :id="id"
             ref="selectRef"
             v-model="vmodel"
             data-oruga-input="select"
@@ -382,7 +379,6 @@ defineExpose({ focus: setFocus });
             :multiple="multiple"
             :size="nativeSize"
             :disabled="disabled"
-            :aria-labelledby="ariaLabelledby"
             @blur="onBlur"
             @focus="onFocus"
             @invalid="onInvalid">

@@ -147,7 +147,7 @@ function computeClass(
     suffix = "",
 ): string {
     // get component props
-    const props = vm.props;
+    const props = getProps(vm);
 
     const configField = vm.proxy?.$options.configField;
     if (!configField)
@@ -264,10 +264,10 @@ const getProps = (vm: ComponentInternalInstance): ComponentProps => {
 
     // get all props which ends with "Props", these are compressed parent props
     // append these parent props as root level prop
-    Object.keys(props)
+    props = Object.keys(props)
         .filter((key) => key.endsWith("Props"))
-        .forEach((key) => (props = { ...props, ...props[key] }));
+        .map((key) => props[key])
+        .reduce((a, b) => ({ ...a, ...b }), props);
 
-    // TODO: revert object escape
-    return { props };
+    return props;
 };

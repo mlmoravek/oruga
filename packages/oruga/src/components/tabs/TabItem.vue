@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, toRaw, ref, useSlots, type PropType } from "vue";
+import { computed, ref, useSlots, type PropType } from "vue";
 
 import { getOption } from "@/utils/config";
 import { isEqual, uuid } from "@/utils/helpers";
@@ -15,6 +15,7 @@ defineOptions({
     isOruga: true,
     name: "OTabItem",
     configField: "tabs",
+    inheritAttrs: false,
 });
 
 const props = defineProps({
@@ -98,7 +99,7 @@ const emits = defineEmits<{
 const slots = useSlots();
 
 const providedData = computed<TabItemComponent>(() => ({
-    ...toRaw(props),
+    ...props,
     $slots: slots,
     headerIconClasses: headerIconClasses.value,
     headerTextClasses: headerTextClasses.value,
@@ -175,24 +176,28 @@ const headerTextClasses = defineClasses([
 
 <template>
     <Transition
-        :disabled="!parent.animated"
+        v-if="parent"
+        :css="parent.animated"
         :name="transitionName"
         :appear="parent.animateInitially"
         @after-enter="afterEnter"
         @before-leave="beforeLeave">
-        <div
-            v-show="isActive && visible"
-            ref="rootRef"
-            :class="elementClasses"
-            :data-id="`tabs-${item.identifier}`"
-            data-oruga="tabs-item"
-            :tabindex="isActive ? 0 : -1"
-            :role="ariaRole"
-            aria-roledescription="item">
-            <!-- 
-                @slot Tab item content
-            -->
-            <slot />
-        </div>
+        <template v-if="!parent.destroyOnHide || (isActive && visible)">
+            <div
+                v-show="isActive && visible"
+                ref="rootRef"
+                v-bind="$attrs"
+                :class="elementClasses"
+                :data-id="`tabs-${item.identifier}`"
+                data-oruga="tabs-item"
+                :tabindex="isActive ? 0 : -1"
+                :role="ariaRole"
+                aria-roledescription="item">
+                <!-- 
+                    @slot Tab item content
+                -->
+                <slot />
+            </div>
+        </template>
     </Transition>
 </template>

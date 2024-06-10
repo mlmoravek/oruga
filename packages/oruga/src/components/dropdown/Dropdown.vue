@@ -6,6 +6,7 @@ import {
     watch,
     onUnmounted,
     type PropType,
+    type Component,
 } from "vue";
 
 import PositionWrapper from "../utils/PositionWrapper.vue";
@@ -278,7 +279,7 @@ const emits = defineEmits<{
 
 const vmodel = defineModel<any>();
 
-const isActive = defineModel<boolean>("active");
+const isActive = defineModel<boolean>("active", { default: false });
 
 const autoPosition = ref(props.position);
 
@@ -307,50 +308,11 @@ const hoverable = computed(() => props.triggers.indexOf("hover") >= 0);
 
 // --- Event Handler ---
 
-const contentRef = ref<HTMLElement>();
+const contentRef = ref<HTMLElement | Component>();
 const triggerRef = ref<HTMLElement>();
 
 const eventCleanups = [];
 let timer: NodeJS.Timeout;
-
-watch(
-    isActive,
-    (value) => {
-        // on active set event handler
-        if (value && isClient) {
-            setTimeout(() => {
-                if (cancelOptions.value.indexOf("outside") >= 0) {
-                    // set outside handler
-                    eventCleanups.push(
-                        useClickOutside(contentRef, onClickedOutside, [
-                            triggerRef,
-                        ]),
-                    );
-                }
-
-                if (cancelOptions.value.indexOf("escape") >= 0) {
-                    // set keyup handler
-                    eventCleanups.push(
-                        useEventListener("keyup", onKeyPress, document, {
-                            immediate: true,
-                        }),
-                    );
-                }
-            });
-        } else if (!value) {
-            // on close cleanup event handler
-            eventCleanups.forEach((fn) => fn());
-            eventCleanups.length = 0;
-        }
-    },
-    { immediate: true },
-);
-
-onUnmounted(() => {
-    // on close cleanup event handler
-    eventCleanups.forEach((fn) => fn());
-    eventCleanups.length = 0;
-});
 
 const cancelOptions = computed(() =>
     typeof props.closeable === "boolean"
@@ -359,6 +321,45 @@ const cancelOptions = computed(() =>
             : []
         : props.closeable,
 );
+
+watch(
+    isActive,
+    (value) => {
+        // on active set event handler
+        if (value && isClient) {
+            if (cancelOptions.value.indexOf("outside") >= 0) {
+                // set outside handler
+                eventCleanups.push(
+                    useClickOutside(contentRef, onClickedOutside, {
+                        ignore: [triggerRef],
+                        immediate: true,
+                        passive: true,
+                    }),
+                );
+            }
+
+            if (cancelOptions.value.indexOf("escape") >= 0) {
+                // set keyup handler
+                eventCleanups.push(
+                    useEventListener("keyup", onKeyPress, document, {
+                        immediate: true,
+                    }),
+                );
+            }
+        } else if (!value) {
+            // on close cleanup event handler
+            eventCleanups.forEach((fn) => fn());
+            eventCleanups.length = 0;
+        }
+    },
+    { immediate: true, flush: "post" },
+);
+
+onUnmounted(() => {
+    // on close cleanup event handler
+    eventCleanups.forEach((fn) => fn());
+    eventCleanups.length = 0;
+});
 
 /** Close dropdown if clicked outside. */
 function onClickedOutside(): void {
@@ -442,7 +443,7 @@ if (isClient && props.checkScroll)
 
 /** Check if the scroll list inside the dropdown reached the top or it's end. */
 function checkDropdownScroll(): void {
-    const dropdown = unrefElement(contentRef.value);
+    const dropdown = unrefElement(contentRef);
     if (dropdown.clientHeight !== dropdown.scrollHeight) {
         if (
             dropdown.scrollTop + dropdown.clientHeight >=
@@ -596,11 +597,11 @@ defineExpose({ $trigger: triggerRef, $content: contentRef });
         </component>
 
         <PositionWrapper
+            v-slot="{ setContent }"
             v-model:position="autoPosition"
             :teleport="teleport"
             :class="[...rootClasses, ...positionWrapperClasses]"
             :trigger="triggerRef"
-            :content="contentRef"
             :disabled="!isActive"
             default-position="bottom"
             :disable-positioning="!isMobileModal">
@@ -618,7 +619,7 @@ defineExpose({ $trigger: triggerRef, $content: contentRef });
                     :is="menuTag"
                     v-show="(!disabled && (isActive || isHovered)) || inline"
                     :id="menuId"
-                    ref="contentRef"
+                    :ref="(el) => (contentRef = setContent(el))"
                     v-trap-focus="trapFocus"
                     :tabindex="menuTabindex"
                     :class="menuClasses"

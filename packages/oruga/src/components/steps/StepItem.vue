@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, toRaw, ref, useSlots, type PropType } from "vue";
+import { computed, ref, useSlots, type PropType } from "vue";
 
 import { getOption } from "@/utils/config";
 import { isEqual, uuid } from "@/utils/helpers";
@@ -15,6 +15,7 @@ defineOptions({
     isOruga: true,
     name: "OStepItem",
     configField: "steps",
+    inheritAttrs: false,
 });
 
 const props = defineProps({
@@ -90,16 +91,16 @@ const props = defineProps({
 });
 
 const emits = defineEmits<{
-    /** on tab item activate event */
+    /** on step item activate event */
     (e: "activate"): void;
-    /** on tab item deactivate event */
+    /** on step item deactivate event */
     (e: "deactivate"): void;
 }>();
 
 const slots = useSlots();
 
 const providedData = computed<StepItemComponent>(() => ({
-    ...toRaw(props),
+    ...props,
     $slots: slots,
     isTransitioning: isTransitioning.value,
     activate,
@@ -164,24 +165,28 @@ const elementClasses = defineClasses(["itemClass", "o-steps__item"]);
 
 <template>
     <Transition
-        :disabled="!parent.animated"
+        v-if="parent"
+        :css="parent.animated"
         :name="transitionName"
         :appear="parent.animateInitially"
         @after-enter="afterEnter"
         @before-leave="beforeLeave">
-        <div
-            v-show="isActive && visible"
-            ref="rootRef"
-            :class="elementClasses"
-            :data-id="`steps-${item.identifier}`"
-            data-oruga="steps-item"
-            :tabindex="isActive ? 0 : -1"
-            :role="ariaRole"
-            aria-roledescription="item">
-            <!-- 
+        <template v-if="!parent.destroyOnHide || (isActive && visible)">
+            <div
+                v-show="isActive && visible"
+                ref="rootRef"
+                v-bind="$attrs"
+                :class="elementClasses"
+                :data-id="`steps-${item.identifier}`"
+                data-oruga="steps-item"
+                :tabindex="isActive ? 0 : -1"
+                :role="ariaRole"
+                aria-roledescription="item">
+                <!-- 
                 @slot Step item content
             -->
-            <slot />
-        </div>
+                <slot />
+            </div>
+        </template>
     </Transition>
 </template>
