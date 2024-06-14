@@ -2,7 +2,7 @@
 import { computed, type PropType } from "vue";
 
 import { getOption } from "@/utils/config";
-import { uuid, isEqual } from "@/utils/helpers";
+import { isEqual, uuid } from "@/utils/helpers";
 import { defineClasses, useProviderChild } from "@/composables";
 
 import type { DropdownComponent } from "./types";
@@ -21,7 +21,7 @@ const props = defineProps({
     /** The value that will be returned on events and v-model - default is a uuid */
     value: {
         type: [String, Number, Boolean, Object, Array] as PropType<T>,
-        default: undefined, // () => uuid(),
+        default: undefined,
     },
     /** Item label, unnecessary when default slot is used */
     label: { type: String, default: undefined },
@@ -71,7 +71,7 @@ const props = defineProps({
 const emits = defineEmits<{
     /**
      * onclick event
-     * @param value {[String, Number, Boolean, Object, Array]} value prop data
+     * @param value {typeof value} value prop data
      * @param event {event} Native Event
      */
     (e: "click", value: T, event: Event): void;
@@ -89,7 +89,7 @@ const isClickable = computed(
 const isActive = computed(() => {
     if (parent.value.selected === null) return false;
     if (parent.value.props.multiple && Array.isArray(parent.value.selected))
-        return parent.value.selected.some((selected) =>
+        return parent.value.selected.some((selected: T) =>
             isEqual(itemValue.value, selected),
         );
     return isEqual(itemValue.value, parent.value.selected);
